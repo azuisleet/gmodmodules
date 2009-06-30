@@ -17,6 +17,7 @@ IInputSystem		*inputsystem	= NULL;
 // a couple pixels.
 inline void FixNPOW2Alpha(unsigned char *data, int texheight, int height, int width, int rowspan)
 {
+	int WidthSpan = width << 2;
 	int RowOffset;
 	for(int row = 0; row < texheight; row++)
 	{
@@ -24,8 +25,7 @@ inline void FixNPOW2Alpha(unsigned char *data, int texheight, int height, int wi
 
 		for(int colOffset = 0; colOffset < rowspan; colOffset += 4)
 		{
-			int yoffset = colOffset >> 2;
-			if(row > 0 && row < height && yoffset > 0 && yoffset < width)
+			if(row > 0 && row < height && colOffset > 3 && colOffset < WidthSpan)
 				data[RowOffset + colOffset + 3] = 255;
 			else
 				memset(data + (RowOffset + colOffset), 0, 4);
