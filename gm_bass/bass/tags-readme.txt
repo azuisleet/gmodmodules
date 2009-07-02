@@ -2,11 +2,12 @@
 TAGS - Yet Another Tags Reading Library
 
 Written by Wraith, 2k5-2k6
+Contributions by Ian Luck and Dylan Fitterer
 Delphi header and sample by Chris Troesken
 
 Public domain. No warranty.
 
-Version 14
+Version 15
 
 Purpose:
 --------
@@ -18,10 +19,12 @@ Purpose:
 
 Supported tags:
 ---------------
-  mp3 ID3v1 and ID3v2.2/3/4, 
-  OGG/FLAC comments, 
-  WMA, 
-  APE, OFR, MPC, AAC. - all use APE tags
+  MP3 ID3v1 and ID3v2.2/3/4
+  OGG/FLAC comments
+  WMA
+  APE, OFR, MPC, AAC - all use APE tags
+  MP4
+  MOD/etc titles
 
 Package contents:
 -----------------
@@ -63,13 +66,19 @@ Support:
 
 Version History:
 ---------------
+VERSION 15:
+  - UTF-8 text encoding option.
+  - Subtitle and album artist tags.
+  - Support for MP4 tags
+  - Support for MODs (title only).
+
 VERSION 14:
-  - Copyright tag
-  - BASSWMA 2.4 support
+  - Copyright tag.
+  - BASSWMA 2.4 support.
 
 VERSION 12:
-  - ID3v2.4 support
-  - Composer tag
+  - ID3v2.4 support.
+  - Composer tag.
 
 VERSION 8:
   - BASS_StreamGetTags -> BASS_ChannelGetTags.
@@ -134,7 +143,7 @@ Function reference:
     
   Parameters:
     handle  - BASS handle, obtained normally via BASS_StreamCreatexx() call,
-              or any other handle, on which BASS_StreamGetTags() can be called.
+              or any other handle, on which BASS_ChannelGetTags() can be called.
     fmt		- format string, see below.
   
   Return value:
@@ -156,6 +165,8 @@ Function reference:
          "%TRCK"  - track number;
          "%COMP"  - composer;
          "%COPY"  - copyright;
+         "%SUBT"  - subtitle;
+         "%AART"  - album artist;
        - expression:
          "%IFV1(x,a)" - if x is not empty, then %IFV1() evaluates to a, 
                         or to an empty string otherwise;
@@ -166,6 +177,7 @@ Function reference:
          "%ICAP(x)" - capitalizes first letter in each word of x, so
                       "%ICAP(FoO bAR)" yields "Foo Bar";
          "%ITRM(x)" - removes beginning and trailing spaces from x;
+         "%UTF8(x)" - encodes the tags in UTF-8 form (otherwise ANSI);
 
        - escaped symbols:
          "%%" - "%"

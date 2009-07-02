@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="bass.lib tags.lib tier0.lib"
+				AdditionalDependencies="bass.lib tags.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\bass\c"
 				GenerateDebugInformation="true"

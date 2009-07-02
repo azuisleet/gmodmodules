@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// tags.h - TAGS: Yet Another Tag Reading Library for BASS 2.2+
+// tags.h - TAGS: Yet Another Tag Reading Library for BASS 2.3+
 //
 // Author: Wraith, 2k5-2k6
 // Public domain. No warranty.
@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 // Current version. Just increments each release.
-#define TAGS_VERSION 14
+#define TAGS_VERSION 15
 
 // returns description of the last error.
 const char*  _stdcall TAGS_GetLastErrorDesc();
@@ -39,7 +39,3 @@ DWORD _stdcall TAGS_GetVersion();
 
 
 #endif
-
-
-
-

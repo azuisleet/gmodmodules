@@ -1,5 +1,5 @@
 BASS 2.4
-Copyright (c) 1999-2008 Un4seen Developments Ltd. All rights reserved.
+Copyright (c) 1999-2009 Un4seen Developments Ltd. All rights reserved.
 
 Files that you should have found in the BASS package
 ====================================================
@@ -229,6 +229,10 @@ DELPHI\         Delphi API and examples...
     SPEAKERS.DPR
     UNIT1.PAS
     UNIT1.DFM
+  SPECTRUM\       Spectrum analyser example
+    SPECTRUM.DPR
+    SPECTRUM.PAS
+    COMMON.INC
   STREAMTEST\     User stream example
     STREAMTEST.DPR
     STMAIN.PAS
@@ -567,8 +571,28 @@ There are of course bug fixes and other little improvements made along
 the way too! To make upgrading simpler, all functions affected by a
 change to the BASS interface are listed.
 
+2.4.3 - 8/5/2009
+----------------
+* MOD order list retrieval
+	BASS_TAG_MUSIC_ORDERS (BASS_ChannelGetTags type)
+* Support for ID3v2 tags in RIFF/WAVE files ("id3 " chunk)
+	BASS_TAG_ID3V2 (BASS_ChannelGetTags type)
+* Improved position reporting precision on Vista
+	BASS_ChannelGetPosition
+* Length retrieval when streaming in blocks (BASS_STREAM_BLOCK)
+	BASS_ChannelGetLength
+* Support for CoreAudio codecs on OSX
+	BASS_StreamCreateFile/User
+	BASS_SampleLoad
+	BASS_TAG_CA_CODEC (BASS_ChannelGetTags type)
+	TAG_CA_CODEC structure
+* 3D algorithm option support on OSX
+	BASS_CONFIG_3DALGORITHM (BASS_SetConfig option)
+
 2.4.2 - 18/9/2008
 -----------------
+* RF64 support
+	BASS_StreamCreateFile/User
 * RIFF/BWF "Broadcast Audio Extension" tag retrieval
 	BASS_TAG_RIFF_BEXT (BASS_ChannelGetTags type)
 	TAG_BEXT structure
@@ -1469,7 +1493,7 @@ change to the BASS interface are listed.
 
 0.8 - 24/1/2000
 ---------------
-* Improved MP3 performance on P2/K6 and above CPUs - fast!
+* Improved MP3 performance on P2/K6 and above CPUs
 * User DSP functions on streams and MOD musics
 	BASS_ChannelSetDSP
 	BASS_ChannelRemoveDSP
@@ -1656,7 +1680,7 @@ API/Sample contributors
 Visual Basic: Adam Hoult, Hendrik Knaepen, Arthur Aminov,
               Peter Hebels
 Delphi: Titus Miloi, Rogier Timmermans, Alessandro Cappellozza,
-        Jesse Naranjo, Chris Troesken
+        Jesse Naranjo, Chris Troesken, Evgeny Melnikov
 MASM: Octavian Chis
 
 
