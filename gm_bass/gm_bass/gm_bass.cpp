@@ -13,10 +13,15 @@
 					float time = (float)BASS_ChannelBytes2Seconds(handle, len); \
 					gLua->Push(time);
 
+#define LUA2TIME(X) QWORD pos = BASS_ChannelSeconds2Bytes(handle, X);
+
+volatile int numThreads;
+
 struct streamProcData
 {
 	char *file;
 	int callback;
+	double offset;
 	DWORD handle;
 	int error;
 	SyncList<streamProcData *>* pending;
@@ -136,6 +141,17 @@ LUA_FUNCTION(channel_gettag)
 	return 1;
 }
 
+LUA_FUNCTION(channel_setposition)
+{
+	CHANNELFROMLUA()
+
+	gLua->CheckType(2, GLua::TYPE_NUMBER);
+
+	LUA2TIME(gLua->GetDouble(2));
+	BASS_ChannelSetPosition(handle, pos, BASS_POS_BYTE);
+	return 0;
+}
+
 LUA_FUNCTION(channel_setvolume)
 {
 	CHANNELFROMLUA()
@@ -226,12 +242,13 @@ LUA_FUNCTION(bass_streamfile)
 unsigned long WINAPI streamProc(void *param)
 {
 	streamProcData *data = (streamProcData *)param;
-	DWORD handle = BASS_StreamCreateURL(data->file, 0, BASS_STREAM_BLOCK | BASS_SAMPLE_MONO | BASS_SAMPLE_3D, NULL, 0);
+	DWORD handle = BASS_StreamCreateURL(data->file, data->offset, BASS_STREAM_BLOCK | BASS_SAMPLE_MONO | BASS_SAMPLE_3D, NULL, 0);
 	
 	data->error = BASS_ErrorGetCode();
 	data->handle = handle;
 	data->pending->add(data);
 
+	numThreads--;
 	return 0;
 }
 
@@ -239,17 +256,23 @@ LUA_FUNCTION(bass_streamfileurl)
 {
 	ILuaInterface *gLua = Lua();
 	gLua->CheckType(1, GLua::TYPE_STRING);
-	gLua->CheckType(2, GLua::TYPE_FUNCTION);
+	gLua->CheckType(2, GLua::TYPE_NUMBER);
+	gLua->CheckType(3, GLua::TYPE_FUNCTION);
 
 	char *file = strdup(gLua->GetString(1));
-	int callback = gLua->GetReference(2);
+	double time = gLua->GetDouble(2);
+	int callback = gLua->GetReference(3);
 
 	streamProcData *data = new streamProcData;
 	data->file = file;
 	data->callback = callback;
+	data->offset = time;
 	data->pending = GetPendingChannels(gLua);
 
-	CreateThread(NULL, 0, &streamProc, data, 0, NULL); 
+	numThreads++;
+	HANDLE hThread = CreateThread(NULL, 0, &streamProc, data, 0, NULL); 
+	if(hThread == NULL)
+		numThreads--;
 
 	return 0;
 }
@@ -319,6 +342,7 @@ int Start( lua_State* L )
 			__index->SetMember("gettag", channel_gettag);
 			__index->SetMember("getplaying", channel_getplaying);
 			__index->SetMember("getlevel", channel_getlevel);
+			__index->SetMember("setposition", channel_setposition);
 			__index->SetMember("setvolume", channel_setvolume);
 			__index->SetMember("fft2048", channel_fft2048);
 			__index->SetMember("set3dposition", channel_set3dposition);
@@ -335,11 +359,28 @@ int Start( lua_State* L )
 	gLua->Push(poll);
 	gLua->Call(3);
 
+	numThreads = 0;
 	return 0;
 }
 
 int Close( lua_State* L )
 {
+	while(numThreads > 0)
+		Sleep(200);
+
+	SyncList<streamProcData *> *pending = GetPendingChannels(Lua());
+	
+	while(pending->getSize() > 0)
+	{
+		streamProcData *qres = pending->remove();
+		if(!qres) continue;
+
+		free(qres->file);
+		Lua()->FreeReference(qres->callback);
+		delete qres;
+	}
+
+	delete pending;
 	BASS_Free();
 	return 0;
 }
