@@ -136,6 +136,18 @@ LUA_FUNCTION(channel_gettag)
 	return 1;
 }
 
+LUA_FUNCTION(channel_setvolume)
+{
+	CHANNELFROMLUA()
+
+	gLua->CheckType(2, GLua::TYPE_NUMBER);
+	int volume = gLua->GetInteger(2);
+
+	BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
+
+	return 0;
+}
+
 BASS_3DVECTOR *Get3DVect(Vector *vect)
 {
 	BASS_3DVECTOR *vec = new BASS_3DVECTOR;
@@ -182,7 +194,7 @@ LUA_FUNCTION(bass_setposition)
 	BASS_3DVECTOR *front = Get3DVect((Vector *)gLua->GetUserData(3));
 	BASS_3DVECTOR *up = Get3DVect((Vector *)gLua->GetUserData(4));
 
-	BASS_Set3DFactors(1, 0.01, -1.0);
+	BASS_Set3DFactors(0.5, 0.01, -1.0);
 	BASS_Set3DPosition(pos, vel, front, up);
 
 	BASS_Apply3D();
@@ -257,6 +269,8 @@ LUA_FUNCTION(poll)
 
 		if(qres->handle)
 		{
+			BASS_ChannelSetAttribute(qres->handle, BASS_ATTRIB_VOL, 1);
+
 			ILuaObject* Channel = gLua->GetMetaTable(META_CHANNEL, TYPE_CHANNEL);
 			gLua->PushUserData(Channel, (void *)qres->handle);
 			Channel->UnReference();
@@ -281,6 +295,7 @@ int Start( lua_State* L )
 	BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL);
 	BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
 	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
+	BASS_SetVolume(1);
 
 	ILuaObject* table = gLua->GetNewTable();
 		table->SetMember("StreamFile", bass_streamfile);
@@ -304,6 +319,7 @@ int Start( lua_State* L )
 			__index->SetMember("gettag", channel_gettag);
 			__index->SetMember("getplaying", channel_getplaying);
 			__index->SetMember("getlevel", channel_getlevel);
+			__index->SetMember("setvolume", channel_setvolume);
 			__index->SetMember("fft2048", channel_fft2048);
 			__index->SetMember("set3dposition", channel_set3dposition);
 			__index->SetMember("getrawtag", channel_getrawtag);
