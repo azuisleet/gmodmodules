@@ -169,7 +169,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY $(TargetPath) D:\Steam\steamapps\azumarril\garrysmod\garrysmod\lua\includes\modules\$(TargetFileName)"
+				CommandLine="COPY &quot;$(TargetPath)&quot; G:\Steam\steamapps\azumarril\garrysmod\garrysmod\lua\includes\modules\$(TargetFileName)"
 			/>
 		</Configuration>
 	</Configurations>

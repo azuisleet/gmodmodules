@@ -115,7 +115,6 @@ LUA_FUNCTION(chrome_newbrowser)
 		gLua->Msg("Had to make new browser\n");
 		browser = new Browser;
 		browser->view = webCore->createWebView(width, height, false, true);
-		browser->listener = new LuaWebViewListener(browser);
 
 		allBrowsers.push_back(browser);
 	} else {
@@ -126,6 +125,7 @@ LUA_FUNCTION(chrome_newbrowser)
 		browser->view->resize(width, height);
 	}
 
+	browser->listener = new LuaWebViewListener(browser);
 	browser->texture = texture;
 	browser->regen = new ChromeRegenerator(browser);
 
@@ -157,6 +157,7 @@ void FreeBrowser(ILuaInterface *gLua, Browser *browser)
 	browser->texture = NULL;
 	browser->free = true;
 
+	delete browser->listener;
 	delete browser->regen;
 }
 
@@ -379,10 +380,15 @@ void LuaBrowser_Close(ILuaInterface *gLua)
 		if(!browser->free)
 			FreeBrowser(gLua, browser);
 
+#ifndef STAY_IN_MEMORY
 		browser->view->destroy();
-		delete browser->listener;
 		delete browser;
+#else
+		freeBrowsers.push_back(browser);
+#endif
 	}
 
+#ifndef STAY_IN_MEMORY
 	allBrowsers.clear();
+#endif
 }

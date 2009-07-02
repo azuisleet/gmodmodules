@@ -2,6 +2,8 @@
 #pragma once
 #endif
 
+#define STAY_IN_MEMORY
+
 #define _RETAIL
 #include "GMLuaModule.h"
 

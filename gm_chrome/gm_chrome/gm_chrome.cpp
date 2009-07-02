@@ -85,10 +85,15 @@ int Start( lua_State* L )
 	ILuaInterface *gLua = Lua();
 	g_pLua = gLua;
 
+#ifdef STAY_IN_MEMORY
+	LoadLibraryA("garrysmod\\lua\\includes\\modules\\gm_chrome.dll");
+#else
 	if(webCore != NULL)
 		Close(L);
+#endif
 
-	webCore = new Awesomium::WebCore(Awesomium::LOG_VERBOSE, true, Awesomium::PF_BGRA);
+	if(webCore == NULL)
+		webCore = new Awesomium::WebCore(Awesomium::LOG_VERBOSE, true, Awesomium::PF_BGRA);
 
 	if(!webCore)
 	{
@@ -122,8 +127,10 @@ int Close( lua_State* L )
 {
 	LuaBrowser_Close(Lua());
 
+#ifndef STAY_IN_MEMORY
 	if(webCore)
 		delete webCore;
-
+	webCore = NULL;
+#endif
 	return 0;
 }
