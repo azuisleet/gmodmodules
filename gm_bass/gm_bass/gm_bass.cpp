@@ -318,7 +318,6 @@ int Start( lua_State* L )
 	BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL);
 	BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
 	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
-	BASS_SetVolume(1);
 
 	ILuaObject* table = gLua->GetNewTable();
 		table->SetMember("StreamFile", bass_streamfile);
