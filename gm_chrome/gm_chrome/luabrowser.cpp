@@ -114,7 +114,7 @@ LUA_FUNCTION(chrome_newbrowser)
 	{
 		gLua->Msg("Had to make new browser\n");
 		browser = new Browser;
-		browser->view = webCore->createWebView(width, height, false, true);
+		browser->view = webCore->createWebView(width, height, false, true, 30);
 
 		allBrowsers.push_back(browser);
 	} else {

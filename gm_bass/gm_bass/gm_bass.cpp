@@ -15,7 +15,7 @@
 
 #define LUA2TIME(X) QWORD pos = BASS_ChannelSeconds2Bytes(handle, X);
 
-volatile int numThreads;
+volatile int numThreads = 0;
 
 struct streamProcData
 {
@@ -246,6 +246,7 @@ unsigned long WINAPI streamProc(void *param)
 	
 	data->error = BASS_ErrorGetCode();
 	data->handle = handle;
+
 	data->pending->add(data);
 
 	numThreads--;
@@ -315,7 +316,23 @@ LUA_FUNCTION(poll)
 int Start( lua_State* L )
 {
 	ILuaInterface *gLua = Lua();
-	BASS_Init(-1, 44100, BASS_DEVICE_3D, 0, NULL);
+	
+	HWND gmode = FindWindowA("Valve001", "Garry's Mod");
+	if(!gmode)
+	{
+		gLua->Error("Unable to find Garry's Mod window for BASS library");
+		return 0;
+	}
+
+	BOOL bassInit = BASS_Init(-1, 44100, BASS_DEVICE_3D, gmode, NULL);
+	if(!bassInit)
+	{
+		int error = BASS_ErrorGetCode();
+		gLua->Msg("BASS Init failed, error code %d\n", error);
+		gLua->Error("BASS Init error");
+		return 0;
+	}
+
 	BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
 	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
 
@@ -358,7 +375,6 @@ int Start( lua_State* L )
 	gLua->Push(poll);
 	gLua->Call(3);
 
-	numThreads = 0;
 	return 0;
 }
 
