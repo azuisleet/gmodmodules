@@ -39,6 +39,14 @@ LUA_FUNCTION(minit)
 	if(GetMySQL(gLua))
 		return 0;
 
+	gLua->CheckType(1, GLua::TYPE_STRING);
+	gLua->CheckType(2, GLua::TYPE_STRING);
+	gLua->CheckType(3, GLua::TYPE_STRING);
+	gLua->CheckType(4, GLua::TYPE_STRING);
+	gLua->CheckType(5, GLua::TYPE_NUMBER);
+	gLua->CheckType(6, GLua::TYPE_NUMBER);
+	gLua->CheckType(7, GLua::TYPE_NUMBER);
+
 	const char *host = gLua->GetString(1);
 	const char *user = gLua->GetString(2);
 	const char *pass = gLua->GetString(3);
@@ -84,8 +92,10 @@ LUA_FUNCTION(query)
 {
 	ILuaInterface *gLua = Lua();
 	Database *mysql = GetMySQL(gLua);
-	if(!mysql || gLua->StringLength(1) == 0)
+	if(!mysql)
 		return 0;
+
+	gLua->CheckType(1, GLua::TYPE_STRING);
 
 	char *query = strdup(gLua->GetString(1));
 
@@ -114,6 +124,8 @@ LUA_FUNCTION(escape)
 	if(!mysql)
 		return 0;
 
+	gLua->CheckType(1, GLua::TYPE_STRING);
+
 	const char *query = gLua->GetString(1);
 	bool real = gLua->GetBool(2);
 
@@ -130,6 +142,9 @@ LUA_FUNCTION(setcharset)
 	Database *mysql = GetMySQL(gLua);
 	if(!mysql)
 		return 0;
+
+	gLua->CheckType(1, GLua::TYPE_STRING);
+
 	const char *set = gLua->GetString(1);
 	gLua->Push((float)mysql->SetCharacterSet(set, gLua));
 	return 1;
