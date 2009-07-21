@@ -371,6 +371,8 @@ void LuaBrowser_Init(ILuaInterface *gLua)
 
 void LuaBrowser_Close(ILuaInterface *gLua)
 {
+	webCore->update();
+
 	freeBrowsers.clear();
 
 	for(browserVec::iterator iter = allBrowsers.begin(); iter != allBrowsers.end(); iter++)
