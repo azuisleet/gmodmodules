@@ -160,9 +160,11 @@ ILuaObject *TableResult(DBQuery *qres, ILuaInterface *gLua)
 		return restable;
 
 	MYSQL_RES *result = qres->result;
+
+	MYSQL_ROW row = mysql_fetch_row(result);
+
 	int field_count = mysql_num_fields(result);
 	int xrow = 1;
-	MYSQL_ROW row = mysql_fetch_row(result);
 
 	if(qres->flags & QUERY_FLAG_ASSOC)
 		qfields = mysql_fetch_fields(result);
