@@ -129,10 +129,11 @@ LUA_FUNCTION(chrome_newbrowser)
 	browser->texture = texture;
 	browser->regen = new ChromeRegenerator(browser);
 
-	AttachRegenToTexture(gLua, browser->texture, browser->regen);
-
 	browser->width = width, browser->height = height;
 	browser->texwidth = texwidth, browser->texheight = texheight;
+
+	browser->wipeTex = true;
+	AttachRegenToTexture(gLua, browser->texture, browser->regen);
 
 	browser->handler = handler;
 	browser->view->setListener(browser->listener);

@@ -36,6 +36,17 @@ inline void FixNPOW2Alpha(unsigned char *data, int texheight, int height, int wi
 // tex needs to be procedural!!
 void ChromeRegenerator::RegenerateTextureBits( ITexture *pTexture, IVTFTexture *pVTFTexture, Rect_t *pSubRect )
 {
+	if(pBrowser->wipeTex)
+	{
+		unsigned char *data = pVTFTexture->ImageData( 0, 0, 0 );
+		int rowspan = pVTFTexture->RowSizeInBytes( 0 );
+
+		memset(data, 0, rowspan * pBrowser->texheight);
+
+		pBrowser->wipeTex = false;
+		return;
+	}
+
 	Awesomium::WebView *view = pBrowser->view;
 	if(!view->isDirty())
 		return;
@@ -66,6 +77,7 @@ void AttachRegenToTexture(ILuaInterface *gLua, ITexture *tex, ITextureRegenerato
 	gLua->Msg("Attaching regen to texture \"%s\"\n", tex->GetName());
 
 	tex->SetTextureRegenerator(regen);
+	tex->Download();
 }
 
 void DetachRegenFromTexture(ILuaInterface *gLua, ITexture *tex)
