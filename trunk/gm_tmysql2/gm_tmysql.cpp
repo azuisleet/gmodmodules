@@ -1,7 +1,7 @@
 #include "gm_tmysql.h"
 
 #define NUM_THREADS_DEFAULT 2
-#define NUM_CON_DEFAULT 2
+#define NUM_CON_DEFAULT 3
 
 GMOD_MODULE(Start, Close)
 
@@ -61,6 +61,9 @@ LUA_FUNCTION(minit)
 		numConns = NUM_CON_DEFAULT;
 	if(numThreads == 0)
 		numThreads = NUM_THREADS_DEFAULT;
+
+	if(numConns <= numThreads)
+		numConns = numThreads+1;
 
 	Database *mysql = new Database(host, user, pass, db, port, numConns,gLua);
 	if(mysql->num_connections < numConns) {
@@ -127,9 +130,25 @@ LUA_FUNCTION(escape)
 	gLua->CheckType(1, GLua::TYPE_STRING);
 
 	const char *query = gLua->GetString(1);
-	bool real = gLua->GetBool(2);
 
-	char *escaped = mysql->Escape(query, real);
+	char *escaped = mysql->Escape(query, false);
+	gLua->Push(escaped);
+	delete escaped;
+	return 1;
+}
+
+LUA_FUNCTION(escape_real)
+{
+	ILuaInterface *gLua = Lua();
+	Database *mysql = GetMySQL(gLua);
+	if(!mysql)
+		return 0;
+
+	gLua->CheckType(1, GLua::TYPE_STRING);
+
+	const char *query = gLua->GetString(1);
+
+	char *escaped = mysql->Escape(query, true);
 	gLua->Push(escaped);
 	delete escaped;
 	return 1;
@@ -312,6 +331,7 @@ int Start(lua_State *L)
 		mfunc->SetMember("initialize", minit);
 		mfunc->SetMember("query", query);
 		mfunc->SetMember("escape", escape);
+		mfunc->SetMember("escape_real", escape_real);
 		mfunc->SetMember("setcharset", setcharset);
 	gLua->SetGlobal("tmysql", mfunc);
 	// We're not deleting the table here - we're deleting the reference to it.
