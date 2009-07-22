@@ -380,6 +380,8 @@ int Start( lua_State* L )
 
 int Close( lua_State* L )
 {
+	BASS_Stop();
+
 	while(numThreads > 0)
 		Sleep(200);
 
