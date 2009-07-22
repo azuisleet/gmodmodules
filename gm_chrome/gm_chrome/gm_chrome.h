@@ -38,6 +38,8 @@ struct Browser
 
 	int handler;
 	bool free;
+
+	bool wipeTex;
 };
 
 class ChromeRegenerator : public ITextureRegenerator
