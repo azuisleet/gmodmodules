@@ -282,8 +282,6 @@ LUA_FUNCTION(poll)
 {
 	ILuaInterface *gLua = Lua();
 
-	BASS_Update(100);
-
 	SyncList<streamProcData *> *results = GetPendingChannels(gLua);
 
 	while(results->getSize() > 0)
@@ -335,7 +333,6 @@ int Start( lua_State* L )
 		return 0;
 	}
 
-	BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, 0);
 	BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
 	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
 
