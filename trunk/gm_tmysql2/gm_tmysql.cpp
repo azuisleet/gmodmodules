@@ -1,7 +1,7 @@
 #include "gm_tmysql.h"
 
 #define NUM_THREADS_DEFAULT 2
-#define NUM_CON_DEFAULT 3
+#define NUM_CON_DEFAULT 2
 
 GMOD_MODULE(Start, Close)
 
@@ -62,9 +62,6 @@ LUA_FUNCTION(minit)
 	if(numThreads == 0)
 		numThreads = NUM_THREADS_DEFAULT;
 
-	if(numConns <= numThreads)
-		numConns = numThreads+1;
-
 	Database *mysql = new Database(host, user, pass, db, port, numConns,gLua);
 	if(mysql->num_connections < numConns) {
 		delete mysql;
@@ -90,7 +87,7 @@ LUA_FUNCTION(minit)
 	return 0;
 }
 
-// tmysql.query(sqlquery, [callback], [flags])
+// tmysql.query(sqlquery, [callback], [flags], [[callbackarg1]])
 LUA_FUNCTION(query)
 {
 	ILuaInterface *gLua = Lua();
@@ -109,8 +106,15 @@ LUA_FUNCTION(query)
 	}
 	int flags = gLua->GetInteger(3);
 
+	int callbackref = -1;
+	if(gLua->GetStackTop() == 5)
+	{
+		callbackref = gLua->GetReference(4);
+	}
+
 	DBQuery *x = new DBQuery;
 	x->callback = callbackfunc;
+	x->callbackref = callbackref;
 	x->flags = flags;
 	x->query = query;
 	x->lastid = 0;
@@ -144,6 +148,9 @@ LUA_FUNCTION(escape_real)
 	if(!mysql)
 		return 0;
 
+	if(mysql->db_connections <= mysql->thread_count)
+		gLua->ErrorNoHalt("Connections <= thread count, this can cause crashes!\n");
+
 	gLua->CheckType(1, GLua::TYPE_STRING);
 
 	const char *query = gLua->GetString(1);
@@ -167,6 +174,20 @@ LUA_FUNCTION(setcharset)
 	const char *set = gLua->GetString(1);
 	gLua->Push((float)mysql->SetCharacterSet(set, gLua));
 	return 1;
+}
+
+LUA_FUNCTION(debugmode)
+{
+	ILuaInterface *gLua = Lua();
+	Database *mysql = GetMySQL(gLua);
+	if(!mysql)
+		return 0;
+
+	gLua->CheckType(1, GLua::TYPE_BOOL);
+
+	mysql->debugmode = gLua->GetBool(1);
+
+	return 0;
 }
 
 ILuaObject *TableResult(DBQuery *qres, ILuaInterface *gLua)
@@ -299,6 +320,21 @@ LUA_FUNCTION(poll)
 			ILuaObject *restable = TableResult(qres, gLua);
 
 			gLua->PushReference(qres->callback);
+
+			if(mysql->debugmode)
+			{
+				ILuaObject *ref = gLua->GetObject(-1);
+				gLua->Msg("Referenced callback function type %d, is a function: %d\n", ref->GetType(), ref->isFunction());
+				gLua->Msg("Arguments pushed to the stack: state %d, lastid %d, error: %s, callbackref: %d\n", qres->state, qres->lastid, qres->error, qres->callbackref);
+			}
+
+			int args = 3;
+			if(qres->callbackref >= 0)
+			{
+				args = 4;
+				gLua->PushReference(qres->callbackref);
+			}
+
 			gLua->Push(restable);
 
 			int param = 1;
@@ -306,14 +342,17 @@ LUA_FUNCTION(poll)
 			{
 				gLua->Push((float)qres->state);
 				gLua->Push((float)qres->lastid);
-				gLua->Call(3);
+				gLua->Call(args);
 				
 			} else {
 				gLua->Push((float)qres->state);
 				gLua->Push(qres->error);
-				gLua->Call(3);
+				gLua->Call(args);
 				free(qres->error);
 			}
+
+			if(qres->callbackref >= 0)
+				gLua->FreeReference(qres->callbackref);
 			gLua->FreeReference(qres->callback);
 			restable->UnReference();
 		}
@@ -333,6 +372,7 @@ int Start(lua_State *L)
 		mfunc->SetMember("escape", escape);
 		mfunc->SetMember("escape_real", escape_real);
 		mfunc->SetMember("setcharset", setcharset);
+		mfunc->SetMember("debugmode", debugmode);
 	gLua->SetGlobal("tmysql", mfunc);
 	// We're not deleting the table here - we're deleting the reference to it.
 	// If you don't do this you're leaking memory.
