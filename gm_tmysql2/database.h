@@ -7,6 +7,7 @@
 struct DBQuery {
 	char *query;
 	int callback;
+	int callbackref;
 	SyncList<DBQuery *>* completed;
 	MYSQL_RES *result;
 	int state;
@@ -24,8 +25,10 @@ class Database
 {
 	volatile long dead_threads;
 	volatile bool shutdownflag;
-	long thread_count;
+public:
+	int thread_count;
 	int db_connections;
+private:
 	const char *db_host;
 	const char *db_user;
 	const char *db_pass;
@@ -50,4 +53,6 @@ public:
 	bool Database::SetCharacterSet(const char *set, ILuaInterface *gLua);
 
 	SyncList<DBQuery *> queries;
+
+	bool debugmode;
 };

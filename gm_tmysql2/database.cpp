@@ -10,6 +10,8 @@ Database::Database(const char *host, const char *user, const char *pass, const c
 	db_port = port;
 	dead_threads = 0;
 	num_connections = 0;
+	debugmode = false;
+
 	Connections = new MysqlConnection[numConn];
 	for(int i=0;i < numConn; i++)
 	{
