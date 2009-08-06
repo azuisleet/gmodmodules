@@ -62,10 +62,9 @@ LUA_FUNCTION(minit)
 	if(numThreads == 0)
 		numThreads = NUM_THREADS_DEFAULT;
 
-	Database *mysql = new Database(host, user, pass, db, port, numConns,gLua);
+	Database *mysql = new Database(host, user, pass, db, port, numConns, gLua);
 	if(mysql->num_connections < numConns) {
-		delete mysql;
-		mysql = NULL;
+		gLua->Error("Unable to establish all the connections!");
 		return 0;
 	}
 
