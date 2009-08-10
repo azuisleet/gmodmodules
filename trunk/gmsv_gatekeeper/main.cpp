@@ -233,7 +233,7 @@ int Load(lua_State* L)
 	if ( int stage = CSigScan::GetDllMemInfo() )
 	{
 		char err[128];
-		Q_snprintf(err, 128, "CSigScan::GetDllMemInfo failed! (Stage %i)", stage);
+		Q_snprintf(err, sizeof(err), "CSigScan::GetDllMemInfo failed! (Stage %i)", stage);
 		gLua->Error(err);
 	}
 

@@ -60,10 +60,15 @@ void main(){
 	#define WIN32_LEAN_AND_MEAN
 	#define WIN32_EXTRA_LEAN
 	#include <windows.h>
+	#include <strtools.h>
 
 	class CVirtualCallGate {
 	public:
-
+		CVirtualCallGate()
+		{
+			DWORD old;
+			VirtualProtect(m_szGate, sizeof(m_szGate), PAGE_EXECUTE_READWRITE, &old);
+		}
 		void Build(void* pOrigFunc, void* pNewFunc, void* pOrgFuncCaller){
 			BYTE szGate[] = {
 				//pop a	push c	push a	mov a, <dword>	jmp a
@@ -88,10 +93,17 @@ void main(){
 		char m_szGate[20];
 	};
 
-	inline bool DeProtect(void* pMemory, unsigned int uiLen, bool bLock = false){
-		DWORD dwIDontCare;
-		
-		return (VirtualProtect(pMemory, uiLen, ((bLock) ? PAGE_READONLY : PAGE_EXECUTE_READWRITE), &dwIDontCare) ? true : false);
+	inline void DeProtect(void* pMemory, unsigned int uiLen, bool bLock = false){
+		static DWORD dwIDontCare;
+
+		if ( !VirtualProtect(pMemory, uiLen, ((bLock) ? dwIDontCare : PAGE_EXECUTE_READWRITE), &dwIDontCare) )
+		{	
+			char err[256];
+			Q_snprintf(err, sizeof(err), "GetLastError: 0x%x", GetLastError());
+			MessageBox(NULL, err, "GateKeeper", MB_OK);
+		}
+
+		return;
 	}
 
 	#define VFUNC __stdcall
