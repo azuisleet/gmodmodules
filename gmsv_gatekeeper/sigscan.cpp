@@ -10,6 +10,7 @@
 #endif
  
 #include "sigscan.h"
+#include "strtools.h"
  
 /* There is no ANSI ustrncpy */
 unsigned char* ustrncpy(unsigned char *dest, const unsigned char *src, int len) {
@@ -107,6 +108,10 @@ void* CSigScan::FindSignature(void) {
     unsigned char *pEndPtr = base_addr+base_len;
     size_t i;
  
+	DWORD doNotCare;
+	if ( !VirtualProtect(pBasePtr, base_len, PAGE_EXECUTE_READWRITE, &doNotCare) )
+		return NULL;
+
     while(pBasePtr < pEndPtr) {
         for(i = 0;i < sig_len;i++) {
             if((sig_mask[i] != '?') && (sig_str[i] != pBasePtr[i]))
