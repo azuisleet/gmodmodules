@@ -17,14 +17,20 @@ SLOGBlocked = {
 	"dump_entity_sizes",
 	"dumpeventqueue",
 	"dbghist_addline",
-	"dbghist_dump"
+	"dbghist_dump",
+	"groundlist",
+	"report_simthinklist",
+	"report_entities",
+	"server_game_time",
+	"se fail"
 }
 
 local DontShow = {
 	"headcrab",
 	"say",
-	"setpassword",
-	"linkaccount",
+	"gmt_",
+	"gtower_",
+	"gm_",
 	"dr_",
 	"st_",
 	"rp_",
@@ -55,22 +61,9 @@ local DontShow = {
 	"undo",
 	"jukebox",
 	"debugplayer",
-	"gmod_undo"
+	"gmod_undo",
+	"cnc"
 }
-
-function ParseOutPlusNum(lower)
-	local firstchar = string.sub(lower, 1, 1)
-
-	if firstchar == "+" || firstchar == "-" then
-		local space = string.find(lower, " ")
-		if space != nil then
-			local nextspace = string.find(lower, " ", space + 1)
-			return tonumber(string.sub(lower, space + 1, nextspace))
-		end
-	end
-
-	return nil
-end
 
 function Cmd_RecvCommand(Name, Buffer)
 	local Ply = false
@@ -89,11 +82,6 @@ function Cmd_RecvCommand(Name, Buffer)
 
 	local clean = string.Trim(Buffer)
 	local lower = string.lower(clean)
-
-	local crashnum = ParseOutPlusNum(lower)
-	if crashnum && (crashnum > 128839 || crashnum < -1136824) then
-		return true
-	end
 
 	// don't log these commands
 	for k,v in ipairs(DontShow) do
@@ -137,7 +125,7 @@ function Cmd_RecvCommand(Name, Buffer)
 	end
 
 	if string.find(lower, "lua_run_cl") &&
-	 ( string.find(lower, "select v from ratings") ||  string.find(lower, "chrisaster") || string.find(lower, "runstring") ) then
+	 ( string.find(lower, "select v from ratings") ||  string.find(lower, "http") || string.find(lower, "runstring") ) then
 
 		Ply:Kick("You have a malicious bind, type 'key_findbinding lua_run_cl' and rebind those keys")
 		return true
@@ -145,3 +133,12 @@ function Cmd_RecvCommand(Name, Buffer)
 
 	return blocked
 end
+
+hook.Add("SetupMove", "InfAngleGuard", function(ply, cmd)
+	local ang = cmd:GetMoveAngles()
+
+	if not (ang.p >= 0 or ang.p <= 0) or not (ang.y >= 0 or ang.y <= 0) or not (ang.r >= 0 or ang.r <= 0) then
+		cmd:SetMoveAngles(Angle(0, 0, 0))
+		ply:SetEyeAngles(Angle(0, 0, 0))
+	end
+end)
