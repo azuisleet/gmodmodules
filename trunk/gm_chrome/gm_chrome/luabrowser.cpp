@@ -53,6 +53,16 @@ public:
 
 	void onCallback(const std::string& name, const Awesomium::JSArguments& args)
 	{
+		GETMEMBERFROMREF("onCallback")
+			g_pLua->Push(func);
+		g_pLua->Push(handler);
+		g_pLua->Push(name.c_str());
+		ILuaObject* argss = g_pLua->GetNewTable();
+		for(int i=0;i < (int)args.size();i++){
+			argss->SetMember((float)i+1,args.at(i).toString().c_str());
+		}
+		g_pLua->Push(argss);
+		g_pLua->Call(3);
 	}
 
 	void onReceiveTitle(const std::wstring& title, const std::wstring& frameName)
@@ -78,6 +88,11 @@ public:
 
 	void onChangeTargetURL(const std::string& url)
 	{
+		GETMEMBERFROMREF("onChangeTargetURL")
+			g_pLua->Push(func);
+		g_pLua->Push(handler);
+		g_pLua->Push(url.c_str());
+		g_pLua->Call(2);
 	}
 
 private:
