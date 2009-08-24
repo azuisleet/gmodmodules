@@ -80,6 +80,9 @@ void PlayerDestroyed(int player)
 
 void EntityDestroyed(int entindex)
 {
+	if(entindex == 0)
+		return;
+
 	//printf("Entity destroyed %d\n", entindex);
 	NWDependencies.erase(entindex);
 
