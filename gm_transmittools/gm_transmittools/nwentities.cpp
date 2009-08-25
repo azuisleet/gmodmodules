@@ -228,10 +228,9 @@ void HandleRemovePlayerFromRepls(EntInfo *ent, int playerindex)
 	for(ValueVector::iterator iter = ent->values.begin(); iter != ent->values.end(); ++iter)
 	{
 		ValueInfo &value = *iter;
-		PlayerVector &repl = ent->ReplTransmit[value.repl];
 
-		value.finalTransmit &= repl; // clear bits out of final mask (player isn't in it anymore)
-		value.currentTransmit &= repl; // clear bits out of current mask (player isn't in it anymore)
+		value.finalTransmit[playerindex-1] = false; // don't destroy the finalTransmit, especially for nwtype_entity
+		value.currentTransmit[playerindex-1] = false; // clear bit
 
 		if(value.currentTransmit != value.finalTransmit)
 			complete = false;
