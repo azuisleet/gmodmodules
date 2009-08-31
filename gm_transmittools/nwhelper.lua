@@ -31,5 +31,7 @@ hook.Add("OnEntityCreated", "SetupCrashTest", function(ent)
 end)
 
 hook.Add("Move", "CrashTestGo", function(ply)
-	ply.__moves = ply.__moves + 1
+	if IsValid(ply) && ply.__moves then
+		ply.__moves = ply.__moves + 1
+	end
 end)

@@ -170,8 +170,17 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, char &bytes, Packet &packet
 		packet.write.WriteLong(ResolveEHandleForEntity(luavalue));
 		break;
 	case NWTYPE_VECTOR:
-		// vector
-		packet.write.WriteBitVec3Coord(Vector(1,1,1));
+		if(luavalue != NULL)
+		{
+			Vector *vec = (Vector *)luavalue->GetUserData();
+			if(vec != NULL)
+			{
+				packet.write.WriteBitVec3Coord(*vec);
+				break;
+			}
+		}
+		packet.write.WriteBitVec3Coord(Vector(0,0,0));
+		break;
 	case NWTYPE_ANGLE:
 		// angle
 		packet.write.WriteBitAngles(QAngle(1,1,1));

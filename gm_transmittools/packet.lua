@@ -6,6 +6,7 @@ local Readers = {
 	[NWTYPE_STRING] = "ReadString",
 	[NWTYPE_NUMBER] = "ReadLong",
 	[NWTYPE_FLOAT ] = "ReadFloat",
+	[NWTYPE_VECTOR] = "ReadVector"
 }
 
 function ParsePacket(um)
