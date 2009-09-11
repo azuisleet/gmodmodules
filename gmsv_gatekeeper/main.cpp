@@ -64,8 +64,8 @@ struct SteamCert
 	CSteamID id;
 };
 
-CBaseServer* pServer;
-ILuaInterface* gLua;
+CBaseServer* pServer = NULL;
+ILuaInterface* gLua = NULL;
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
 bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pass, const char* user)
@@ -236,9 +236,9 @@ int Load(lua_State* L)
 
 	CSigScan sigBaseServer;
 	sigBaseServer.Init((unsigned char *)
-		"\x00\x00\x00\x00\xF3\x0F\x11\x4C\x24\x20"
-		"\xE8\x44\x55\xEA\xFF\xD9\x44\x24\x20\xDF",
-		"????xxxxxxxxxxxxxxxx", 20);
+		"\x00\x00\x00\x00\xE8\x2C\xFA\xFF\xFF\x5E"
+		"\xC3\x8B\x0D\x00\x00\x00\x00\x51\xB9",
+		"????xxxxxxxxx????xx", 10);
 
 	if ( !sigBaseServer.is_set )
 		gLua->Error("CBaseServer signature failed!");
@@ -258,7 +258,8 @@ int Load(lua_State* L)
 
 int Unload(lua_State* L)
 {
-	UNHOOKVFUNC(pServer, 57, origCheckPassword);
+	if ( pServer )
+		UNHOOKVFUNC(pServer, 57, origCheckPassword);
 
 	return 0;
 }
