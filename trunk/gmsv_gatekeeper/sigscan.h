@@ -41,7 +41,7 @@ public:
     CSigScan(void): sig_str(NULL), sig_mask(NULL), sig_len(0), sig_addr(NULL) {}
     ~CSigScan(void);
  
-    static int GetDllMemInfo(void);
+    static bool GetDllMemInfo(void);
     void Init(unsigned char *sig, char *mask, size_t len);
 };
 
