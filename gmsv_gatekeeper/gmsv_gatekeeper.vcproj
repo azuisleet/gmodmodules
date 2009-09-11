@@ -61,9 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies=""
+				AdditionalDependencies="tier0.lib tier1.lib tier2.lib tier3.lib vstdlib.lib wsock32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="C:\SourceSDK\OB\lib\public"
+				IgnoreDefaultLibraryNames="msvcrt.lib;msvcrtd.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"

@@ -230,20 +230,15 @@ int Load(lua_State* L)
 	gLua = Lua();
 
 	CSigScan::sigscan_dllfunc = Sys_GetFactory("engine.dll");
-	if ( int stage = CSigScan::GetDllMemInfo() )
-	{
-		char err[128];
-		Q_snprintf(err, sizeof(err), "CSigScan::GetDllMemInfo failed! (Stage %i)", stage);
-		gLua->Error(err);
-	}
+	
+	if ( !CSigScan::GetDllMemInfo() )
+		gLua->Error("CSigScan::GetDllMemInfo failed!");
 
 	CSigScan sigBaseServer;
 	sigBaseServer.Init((unsigned char *)
-		"\x00\x00\x00\x00\xE8\x20\xE1\x10\x00\x85"
-		"\xFF\x74\x08\x8B\xBF\x18\x01\x00\x00\xEB"
-		"\x02\x33\xFF\x8B\x8E\x18\x01\x00\x00\x8B"
-		"\x15\x00\x00\x00\x00\x68\xFF\x00\x00\x00",
-		"????xxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxxx", 40);
+		"\x00\x00\x00\x00\xF3\x0F\x11\x4C\x24\x20"
+		"\xE8\x44\x55\xEA\xFF\xD9\x44\x24\x20\xDF",
+		"????xxxxxxxxxxxxxxxx", 20);
 
 	if ( !sigBaseServer.is_set )
 		gLua->Error("CBaseServer signature failed!");

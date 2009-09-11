@@ -56,19 +56,19 @@ CSigScan::~CSigScan(void) {
 }
  
 /* Get base address of the server module (base_addr) and get its ending offset (base_len) */
-int CSigScan::GetDllMemInfo(void) {
+bool CSigScan::GetDllMemInfo(void) {
     void *pAddr = (void*)sigscan_dllfunc;
     base_addr = 0;
     base_len = 0;
-
+ 
     #ifdef WIN32
-    MEMORY_BASIC_INFORMATION mem; 
-	
+    MEMORY_BASIC_INFORMATION mem;
+ 
     if(!pAddr)
-        return 1; // GetDllMemInfo failed!pAddr
-
+        return false; // GetDllMemInfo failed!pAddr
+ 
     if(!VirtualQuery(pAddr, &mem, sizeof(mem)))
-        return 2;
+        return false;
  
     base_addr = (unsigned char*)mem.AllocationBase;
  
@@ -77,8 +77,9 @@ int CSigScan::GetDllMemInfo(void) {
  
     if(pe->Signature != IMAGE_NT_SIGNATURE) {
         base_addr = 0;
-        return 3; // GetDllMemInfo failedpe points to a bad location
+        return false; // GetDllMemInfo failedpe points to a bad location
     }
+ 
     base_len = (size_t)pe->OptionalHeader.SizeOfImage;
  
     #else
@@ -99,7 +100,7 @@ int CSigScan::GetDllMemInfo(void) {
     base_len = buf.st_size;
     #endif
  
-    return 0;
+    return true;
 }
  
 /* Scan for the signature in memory then return the starting position's address */
@@ -112,7 +113,7 @@ void* CSigScan::FindSignature(void) {
 	if ( !VirtualProtect(pBasePtr, base_len, PAGE_EXECUTE_READWRITE, &doNotCare) )
 		return NULL;
 
-    while(pBasePtr < pEndPtr) {
+    while(pBasePtr < pEndPtr - sig_len) {
         for(i = 0;i < sig_len;i++) {
             if((sig_mask[i] != '?') && (sig_str[i] != pBasePtr[i]))
                 break;
