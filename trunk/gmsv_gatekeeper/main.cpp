@@ -158,7 +158,8 @@ LUA_FUNCTION(DropAllPlayers)
 	for (int i=0; i < pServer->GetClientCount(); i++)
 	{
 		IClient* client = pServer->GetClient(i);
-		client->Disconnect(gLua->GetString(1));
+		if(client->IsConnected())
+			client->Disconnect(gLua->GetString(1));
 	}
 
 	return 0;
