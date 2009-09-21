@@ -151,6 +151,19 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 	return origCheckPassword(srv, netinfo, pass, user);
 }
 
+LUA_FUNCTION(DropAllPlayers)
+{
+	gLua->CheckType(1, GLua::TYPE_STRING);
+
+	for (int i=0; i < pServer->GetClientCount(); i++)
+	{
+		IClient* client = pServer->GetClient(i);
+		client->Disconnect(gLua->GetString(1));
+	}
+
+	return 0;
+}
+
 LUA_FUNCTION(DropPlayer)
 {
 	gLua->CheckType(1, GLua::TYPE_NUMBER);
@@ -249,6 +262,7 @@ int Load(lua_State* L)
 	ILuaObject* gatekeeper = gLua->GetNewTable();
 		gatekeeper->SetMember("Drop", DropPlayer);
 		gatekeeper->SetMember("GetNumClients", GetNumClients);
+		gatekeeper->SetMember("DropAllClients", DropAllPlayers);
 	gLua->SetGlobal("gatekeeper", gatekeeper);
 
 	gatekeeper->UnReference();

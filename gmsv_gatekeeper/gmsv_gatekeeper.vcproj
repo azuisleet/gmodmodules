@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy .\Release\gmsv_gatekeeper.dll c:\srcds\orangebox\garrysmod\lua\includes\modules\gmsv_gatekeeper.dll"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
