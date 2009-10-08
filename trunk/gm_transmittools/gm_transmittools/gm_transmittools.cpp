@@ -311,8 +311,6 @@ int Start(lua_State *L)
 	gameents = (IServerGameEnts *)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
 	gamedll = (IServerGameDLL *)gameServerFactory(INTERFACEVERSION_SERVERGAMEDLL, NULL);
 
-	//tickinterval = gamedll->GetTickInterval();
-
 	g_pLua = gLua;
 
 	DWORD* pFunct = GetInterfaceFuncPtr((DWORD*)gameents,"%p",&IServerGameEnts::CheckTransmit);
@@ -339,9 +337,7 @@ int Start(lua_State *L)
 
 	// umsg pool
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStringTable");
-	table->AddString(true, "N");
-
-	umsgStringTableOffset = table->FindStringIndex("N");
+	umsgStringTableOffset = table->AddString(true, "N") << 1 | 1; // what teh hug
 
 	ILuaObject *transmittools = gLua->GetNewTable();
 		transmittools->SetMember("DebugDump", DebugDump);
