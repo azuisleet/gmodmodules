@@ -260,7 +260,7 @@ void DispatchPackets()
 
 		bf_write *bf_write = engine->UserMessageBegin(&filter, 33); // LuaUserMessage
 
-		bf_write->WriteShort(umsgStringTableOffset+1);
+		bf_write->WriteShort(umsgStringTableOffset);
 		bf_write->WriteOneBit(0); // important bit!
 
 		unsigned char *packetdata = packet.write.GetBasePointer(); 
@@ -315,7 +315,7 @@ int NWUmsgTest(lua_State *)
 	CRecipientFromBitset filter(vec);
 
 	bf_write *bf_write = engine->UserMessageBegin(&filter, 33); // LuaUserMessage
-	bf_write->WriteShort(umsgStringTableOffset+1);
+	bf_write->WriteShort(umsgStringTableOffset);
 	bf_write->WriteOneBit(0); // important bit!
 
 	int pos = bf_write->m_iCurBit;
