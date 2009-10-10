@@ -298,6 +298,20 @@ LUA_FUNCTION(tt_InvalidatePlayerCrashed)
 	return 0;
 }
 
+LUA_FUNCTION(tt_PlayerTimeout)
+{
+	ILuaInterface *gLua = Lua();
+	gLua->CheckType(1, GLua::TYPE_NUMBER);
+
+	INetChannelInfo *channel = engine->GetPlayerNetInfo(gLua->GetInteger(1));
+	if(channel == NULL)
+		return 0;
+
+	gLua->Push(channel->GetTimeSinceLastReceived());
+
+	return 1;
+}
+
 int Start(lua_State *L)
 {
 	ILuaInterface *gLua = Lua();
@@ -354,6 +368,7 @@ int Start(lua_State *L)
 		transmittools->SetMember("EntityVariableUpdated", tt_EntityVariableUpdated);
 
 		transmittools->SetMember("InvalidatePlayerCrashed", tt_InvalidatePlayerCrashed);
+		transmittools->SetMember("PlayerTimeout", tt_PlayerTimeout);
 
 		transmittools->SetMember("NWTick", NWTickAll);
 
