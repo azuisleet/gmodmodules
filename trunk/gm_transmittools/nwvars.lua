@@ -22,7 +22,6 @@ end
 NWDEBUG = false
 
 if SERVER then
-	include("nwhelper.lua")
 	require("transmittools")
 
 	hook.Add("Tick", "NWTick", transmittools.NWTick)
@@ -39,8 +38,16 @@ if SERVER then
 		transmittools.EntityDestroyed(entindex)
 	end)
 
-	hook.Add("PlayerCrashedHorribly", "NWPlayerCrash", function(ply)
-		transmittools.InvalidatePlayerCrashed(ply:EntIndex())
+	hook.Add("PlayerThink", "PlayerCrashTest", function(ply)
+		local time = transmittools.PlayerTimeout(ply:EntIndex())
+		if time == nil then return end
+
+		if time > 2 then
+			ply._NetCrash = true
+		elseif ply._NetCrash then
+			ply._NetCrash = false
+			transmittools.InvalidatePlayerCrashed(ply:EntIndex())
+		end
 	end)
 end
 
