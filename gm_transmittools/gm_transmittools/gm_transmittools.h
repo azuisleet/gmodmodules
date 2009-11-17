@@ -11,26 +11,9 @@ extern ILuaInterface *g_pLua;
 #include <bitset>
 #include <unordered_map>
 
-#include "engine/iserverplugin.h"
-#include "game/server/iplayerinfo.h"
-#include "eiface.h"
-#include "irecipientfilter.h"
-#include "networkstringtabledefs.h"
-#include "inetchannelinfo.h"
-#include "inetchannel.h"
-
-/* oh dear */
-#include "predictable_entity.h"
-class ISave;
-class IRestore;
-class CTakeDamageInfo;
-class touchlink_t;
-class groundlink_t;
-#include "variant_t.h"
-#include "predictioncopy.h"
-class CBasePlayer;
-#include "baseentity.h"
-/* ok */
+//hl2sdk-ob-2e2ec01be7aa off the sourcemod mercurial
+#include <server/cbase.h>
+#include <inetchannel.h>
 
 #include "bitbuf.h"
 
