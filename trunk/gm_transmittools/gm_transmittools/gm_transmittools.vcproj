@@ -170,7 +170,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY &quot;$(TargetPath)&quot; E:\HLServer\orangebox\garrysmod\lua\includes\modules\$(TargetFileName)"
+				CommandLine="COPY &quot;$(TargetPath)&quot; D:\HLServer\orangebox\garrysmod\lua\includes\modules\$(TargetFileName)"
 			/>
 		</Configuration>
 		<Configuration

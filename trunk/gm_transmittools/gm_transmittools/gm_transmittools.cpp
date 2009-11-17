@@ -196,6 +196,37 @@ LUA_FUNCTION(DebugVis)
 	return 0;
 }
 
+LUA_FUNCTION(DebugIncompleteSize)
+{
+	printf("Incomplete entities: %d\n", IncompleteEntities.size());
+	return 0;
+}
+
+LUA_FUNCTION(DebugMasks)
+{
+	ILuaInterface *gLua = Lua();
+	gLua->CheckType(1, GLua::TYPE_NUMBER);
+
+	int index = gLua->GetNumber(1);
+
+	netents::const_iterator iter = NetworkedEntities.find(index);
+	if(iter == NetworkedEntities.end())
+	{
+		printf("Entity %d is not networked\n", index);
+		return 0;
+	}
+
+	EntInfo *ent = iter->second;
+
+	printf("Net ent %d (complete %d)\n", ent->entindex, ent->complete);
+	printf("Ultimate transmit %s\n", ent->ultimateTransmit.to_string().c_str());
+	for(ValueVector::const_iterator iter = ent->values.begin(); iter != ent->values.end(); ++iter)
+	{
+		printf("%d %s\n%s\n", (*iter).tableoffset, (*iter).currentTransmit.to_string().c_str(), (*iter).finalTransmit.to_string().c_str());
+	}
+	return 0;
+}
+
 LUA_FUNCTION(tt_NetworkedEntityCreated)
 {
 	ILuaInterface *gLua = Lua();
@@ -356,6 +387,8 @@ int Start(lua_State *L)
 	ILuaObject *transmittools = gLua->GetNewTable();
 		transmittools->SetMember("DebugDump", DebugDump);
 		transmittools->SetMember("DebugVis", DebugVis);
+		transmittools->SetMember("DebugIncompleteSize", DebugIncompleteSize);
+		transmittools->SetMember("DebugMasks", DebugMasks);
 
 		transmittools->SetMember("NetworkedEntityCreated", tt_NetworkedEntityCreated);
 		transmittools->SetMember("NetworkedEntityCreatedFinish", tt_NetworkEntityCreatedFinish);
