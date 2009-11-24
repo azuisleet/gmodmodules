@@ -258,7 +258,7 @@ void DispatchPackets()
 
 		CRecipientFromBitset filter(vec);
 
-		bf_write *bf_write = engine->UserMessageBegin(&filter, 33); // LuaUserMessage
+		bf_write *bf_write = engine->UserMessageBegin(&filter, 28); // LuaUserMessage
 
 		bf_write->WriteShort(umsgStringTableOffset);
 		bf_write->WriteOneBit(0); // important bit!
@@ -314,18 +314,21 @@ int NWUmsgTest(lua_State *)
 
 	CRecipientFromBitset filter(vec);
 
-	bf_write *bf_write = engine->UserMessageBegin(&filter, 33); // LuaUserMessage
-	bf_write->WriteShort(umsgStringTableOffset);
-	bf_write->WriteOneBit(0); // important bit!
+	for(int i = 0; i < 64; i++)
+	{
+		bf_write *bf_write = engine->UserMessageBegin(&filter, 28); // LuaUserMessage
+		bf_write->WriteShort(i); //umsgStringTableOffset);
+		bf_write->WriteOneBit(0); // important bit!
 
-	int pos = bf_write->m_iCurBit;
-	bf_write->WriteChar(64);
-	int opos = bf_write->m_iCurBit;
-	bf_write->SeekToBit(pos);
-	bf_write->WriteChar(63);
-	bf_write->SeekToBit(opos);
-
-	engine->MessageEnd();
+		int pos = bf_write->m_iCurBit;
+		bf_write->WriteChar(64);
+		int opos = bf_write->m_iCurBit;
+		bf_write->SeekToBit(pos);
+		bf_write->WriteChar(63);
+		bf_write->SeekToBit(opos);
+	
+		engine->MessageEnd();
+	}
 
 	return 0;
 }
