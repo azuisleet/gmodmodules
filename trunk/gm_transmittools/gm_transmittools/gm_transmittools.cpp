@@ -13,9 +13,9 @@ int umsgStringTableOffset;
 //int tickinterval;
 
 // gEntList
-#define LETSSTEALGENTLIST "\x33\xDB\xEB\x02\xDD\xD8\x68\x00\x00\x00\x00\x56\xB9"
-#define LETSSTEALGENTLISTMASK "xxxxxxx????xx"
-#define LETSSTEALGENTLISTLEN 13
+#define LETSSTEALGENTLIST "\xFF\xD5\x83\xC4\x08\x6A\x00\xB9"
+#define LETSSTEALGENTLISTMASK "xxxxxxxx"
+#define LETSSTEALGENTLISTLEN 8
 CSigScan LETSSTEALGENTLIST_Sig;
 CBaseEntityList * g_pEntityList;
 
