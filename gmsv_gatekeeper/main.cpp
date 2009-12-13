@@ -163,13 +163,12 @@ LUA_FUNCTION(GetUserByAddress)
 		IClient* client = pServer->GetClient(i);
 		if(client->IsConnected() && strcmp(addr, client->GetNetChannel()->GetRemoteAddress().ToString()) == 0)
 		{	
-			userid = client->GetUserID();
-			break;
+			gLua->Push((float) client->GetUserID());
+			return 1;
 		}
 	}
 
-	gLua->Push((float)userid);
-	return 1;
+	return 0;
 }
 
 LUA_FUNCTION(DropAllPlayers)
