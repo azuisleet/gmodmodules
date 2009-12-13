@@ -11,6 +11,7 @@
 #include <netadr.h>
 #include <iclient.h>
 #include <iserver.h>
+#include <inetchannel.h>
 
 #include "common/GMLuaModule.h"
 
@@ -151,6 +152,26 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 	return origCheckPassword(srv, netinfo, pass, user);
 }
 
+LUA_FUNCTION(GetUserByAddress)
+{
+	gLua->CheckType(1, GLua::TYPE_STRING);
+	const char *addr = gLua->GetString(1);
+	int userid = -1;
+
+	for (int i=0; i < pServer->GetClientCount(); i++)
+	{
+		IClient* client = pServer->GetClient(i);
+		if(client->IsConnected() && strcmp(addr, client->GetNetChannel()->GetRemoteAddress().ToString()) == 0)
+		{	
+			userid = client->GetUserID();
+			break;
+		}
+	}
+
+	gLua->Push((float)userid);
+	return 1;
+}
+
 LUA_FUNCTION(DropAllPlayers)
 {
 	gLua->CheckType(1, GLua::TYPE_STRING);
@@ -264,6 +285,8 @@ int Load(lua_State* L)
 		gatekeeper->SetMember("Drop", DropPlayer);
 		gatekeeper->SetMember("GetNumClients", GetNumClients);
 		gatekeeper->SetMember("DropAllClients", DropAllPlayers);
+
+		gatekeeper->SetMember("GetUserByAddress", GetUserByAddress);
 	gLua->SetGlobal("gatekeeper", gatekeeper);
 
 	gatekeeper->UnReference();
