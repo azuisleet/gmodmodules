@@ -189,17 +189,18 @@ LUA_FUNCTION(debugmode)
 	return 0;
 }
 
-ILuaObject *TableResult(DBQuery *qres, ILuaInterface *gLua)
+bool TableResult(DBQuery *qres, ILuaInterface *gLua)
 {
 	MYSQL_FIELD *qfields;
 
 	ILuaObject *restable = gLua->GetNewTable();
+	restable->Push();
+	restable->UnReference();
 
 	if(qres->result == NULL)
-		return restable;
+		return false;
 
 	MYSQL_RES *result = qres->result;
-
 	MYSQL_ROW row = mysql_fetch_row(result);
 
 	int field_count = mysql_num_fields(result);
@@ -210,7 +211,7 @@ ILuaObject *TableResult(DBQuery *qres, ILuaInterface *gLua)
 	if(!qfields)
 	{
 		gLua->ErrorNoHalt("NULL fields\n");
-		return restable;
+		return false;
 	}
 
 	while(row != NULL)
@@ -225,13 +226,19 @@ ILuaObject *TableResult(DBQuery *qres, ILuaInterface *gLua)
 				tablerow->SetMember((float)y+1, row[y]);
 			}
 		}
+
+		restable = gLua->GetObject();
+
 		restable->SetMember((float)xrow, tablerow);
 		tablerow->UnReference();
+
+		restable->UnReference();
+
 		row = mysql_fetch_row(result);
 		xrow++;
 	}
 
-	return restable;	
+	return true;	
 }
 
 /*
@@ -316,7 +323,11 @@ LUA_FUNCTION(poll)
 			continue;
 		if(qres->callback >= 0)
 		{
-			ILuaObject *restable = TableResult(qres, gLua);
+			if(!TableResult(qres, gLua))
+				gLua->Error("Issue creating table for tmysql callback.\n");
+
+			ILuaObject *restable = gLua->GetObject();
+			gLua->Pop();
 
 			gLua->PushReference(qres->callback);
 
