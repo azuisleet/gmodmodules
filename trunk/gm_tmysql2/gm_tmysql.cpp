@@ -198,7 +198,7 @@ bool TableResult(DBQuery *qres, ILuaInterface *gLua)
 	restable->UnReference();
 
 	if(qres->result == NULL)
-		return false;
+		return true;
 
 	MYSQL_RES *result = qres->result;
 	MYSQL_ROW row = mysql_fetch_row(result);
