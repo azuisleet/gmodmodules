@@ -15,7 +15,11 @@ struct ScriptData
 	bool somebool;
 };
 
-typedef CUtlVector<char[64]> AddonVector; // this may be a struct, but this can be solved with amazing C++ typedefs
+#ifndef NO_SDK
+	typedef CUtlVector<char[64]> AddonVector; // this may be a struct, but this can be solved with amazing C++ typedefs
+#else
+	typedef void* AddonVector;
+#endif
 
 class ILuaShared
 {
