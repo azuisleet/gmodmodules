@@ -1,0 +1,1 @@
+bool ValidateKPacket(byte *buffer, int length);
