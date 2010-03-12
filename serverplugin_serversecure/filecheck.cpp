@@ -49,22 +49,11 @@ int checkext_hook(char *filename)
 
 	if(index != INVALID_STRING_INDEX)
 	{
-		Msg("File was on string table %s\n", filename);
 		return safe;
-	}
-
-	FILE *fp = fopen("filelog.txt", "a");
-	if(fp)
-	{
-		char buff[1024];
-		_snprintf(buff, sizeof(buff), "%s\n", filename);
-		fputs(buff, fp);
-		fclose(fp);
 	}
 
 	if(len == 22 && strncmp(filename, "downloads/", 10) == 0 && strncmp(filename + len - 4, ".dat", 4) == 0)
 	{
-		Msg("Sending/Recving file %s\n", filename);
 		return safe;
 	}
 
