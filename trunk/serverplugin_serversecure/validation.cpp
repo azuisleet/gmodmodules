@@ -57,7 +57,5 @@ bool ValidateKPacket(byte *buffer, int length)
 		return false;
 	}
 
-	Msg("Result: %d %d\n", appticketlength, apptickerheaderlength);
-
 	return true;
 }

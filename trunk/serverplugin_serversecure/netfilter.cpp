@@ -86,7 +86,7 @@ byte CACHECHALLENGE[] = {0xFF, 0xFF, 0xFF, 0xFF, 'A', 0, 0, 0, 0};
 
 // cvars
 static ConVar cvar_cachetime("ss_query_cachetime", "5", 0, "How many seconds to cache a query");
-static ConVar cvar_showoob("ss_show_oob", "1", 0, "Print out OOB packets");
+static ConVar cvar_showoob("ss_show_oob", "0", 0, "Print out OOB packets");
 
 // commands
 CON_COMMAND(ss_showconnections, "Show all connections")
@@ -128,7 +128,8 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 	// cache player requests
 	else if(packet->channel == OOB && packet->type == 'U')
 	{
-		if(retlen != (int)sizeof(GamePacketServerChallenge))
+		return true;
+		/*if(retlen != (int)sizeof(GamePacketServerChallenge))
 			return false;
 
 		if(time(NULL) > cache_players_timer)
@@ -141,7 +142,7 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 		else if(packetc->challenge == playerschallenge)
 			wsock_sendto(s, (const char *)playerbuffer, playerlength, 0, from, fromlength);
 
-		return false;
+		return false;*/
 	}
 
 	// fast deny of packets, a2c_print, spam
@@ -271,7 +272,7 @@ int WINAPI SSSendTo(SOCKET s, const char *buf, int len, int flags, const struct 
 
 				cache_timer = time(NULL) + cvar_cachetime.GetInt();
 			}
-			else if(packet->type == 'D')
+			/*else if(packet->type == 'D')
 			{
 				if(playerbuffer != NULL)
 					delete playerbuffer;
@@ -281,7 +282,7 @@ int WINAPI SSSendTo(SOCKET s, const char *buf, int len, int flags, const struct 
 				memcpy(playerbuffer, buf, len);
 
 				cache_players_timer = time(NULL) + cvar_cachetime.GetInt();
-			}
+			}*/
 			else if(packet->type == 'A' && len >= (int)sizeof(GamePacketServerChallenge))
 			{
 				GamePacketServerChallenge *packetsc = (GamePacketServerChallenge *)buf;
