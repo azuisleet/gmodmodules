@@ -34,7 +34,6 @@ int checkext_hook(char *filename)
 	}
 	
 	int len = strlen(filename);
-
 	int index = downloads->FindStringIndex(filename);
 
 	if(index == INVALID_STRING_INDEX && (len > 5 && strncmp(filename, "maps/", 5) == 0))
