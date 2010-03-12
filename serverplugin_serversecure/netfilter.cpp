@@ -243,6 +243,7 @@ int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int 
 	if(ClassifyPacket(s, buf, from, *fromlen, retlen))
 		return retlen;
 
+	WSASetLastError(WSAEWOULDBLOCK); 
 	return SOCKET_ERROR;
 
 }
