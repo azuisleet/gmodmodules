@@ -47,6 +47,15 @@ int checkext_hook(const char *filename)
 		return 0;
 	}
 
+	FILE *fp = fopen("filelog.txt", "a");
+	if(fp)
+	{
+		char buff[1024];
+		_snprintf(buff, sizeof(buff), "%s\n", filename);
+		fputs(buff, fp);
+		fclose(fp);
+	}
+
 	Msg("Sending/Recving file %s\n", filename);
 	return safe;
 }
