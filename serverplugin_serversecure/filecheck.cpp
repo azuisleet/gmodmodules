@@ -14,7 +14,7 @@ int (*checkext_trampoline)(const char *file) = 0;
  INetworkStringTableContainer *netstringtables;
  INetworkStringTable *downloads = NULL;
 
-int checkext_hook(const char *filename)
+int checkext_hook(char *filename)
 {
 	if(filename == NULL)
 		return 0;
@@ -32,19 +32,26 @@ int checkext_hook(const char *filename)
 			return 0;
 		}
 	}
+	
+	int len = strlen(filename);
 
 	int index = downloads->FindStringIndex(filename);
+
+	if(index == INVALID_STRING_INDEX && (len > 5 && strncmp(filename, "maps/", 5) == 0))
+	{
+		for(int i = 0; i < len; i++)
+		{
+			if(filename[i] == '/')
+				filename[i] = '\\';
+		}
+
+		index = downloads->FindStringIndex(filename);
+	}
+
 	if(index != INVALID_STRING_INDEX)
 	{
 		Msg("File was on string table %s\n", filename);
 		return safe;
-	}
-
-	int len = strlen(filename);
-	if(!(len == 22 && strncmp(filename, "downloads/", 10) == 0 && strncmp(filename + len - 4, ".dat", 4) == 0) )
-	{
-		Msg("Blocking %s\n", filename);
-		return 0;
 	}
 
 	FILE *fp = fopen("filelog.txt", "a");
@@ -56,8 +63,14 @@ int checkext_hook(const char *filename)
 		fclose(fp);
 	}
 
-	Msg("Sending/Recving file %s\n", filename);
-	return safe;
+	if(len == 22 && strncmp(filename, "downloads/", 10) == 0 && strncmp(filename + len - 4, ".dat", 4) == 0)
+	{
+		Msg("Sending/Recving file %s\n", filename);
+		return safe;
+	}
+
+	Msg("File not accepted: %s\n", filename);
+	return 0;
 }
 
 void FileFilter_Load()
