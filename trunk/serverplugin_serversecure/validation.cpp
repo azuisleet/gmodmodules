@@ -53,7 +53,7 @@ bool ValidateKPacket(byte *buffer, int length)
 
 	if(apptickerheaderlength != 4 && apptickerheaderlength != 20)
 	{
-		Msg("Unexpected app ticket header length\n");
+		Msg("Unexpected app ticket header length: %d\n", apptickerheaderlength);
 		return false;
 	}
 
