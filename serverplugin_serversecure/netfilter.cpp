@@ -315,7 +315,7 @@ void NetFilter_Load()
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)wsock_sendto, SSSendTo);
+		DetourAttach(&(PVOID&)wsock_sendto, SSSendTo);
 	DetourTransactionCommit();
 }
 
@@ -323,13 +323,10 @@ void NetFilter_Unload()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)wsock_sendto, SSSendTo);
+		DetourDetach(&(PVOID&)wsock_sendto, SSSendTo);
 	DetourTransactionCommit();
 
-	if(g_pVCR->Hook_recvfrom == &SSRecvFrom)
-		g_pVCR->Hook_recvfrom = vcr_recvfrom;
-	else
-		Msg("Warning: We aren't the parent in the VCR chain.\n");
+	g_pVCR->Hook_recvfrom = vcr_recvfrom;
 
 	ClientInfoMap::iterator iter = clientMap.begin();
 	while( iter != clientMap.end() )
