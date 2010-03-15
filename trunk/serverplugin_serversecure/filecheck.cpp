@@ -11,8 +11,7 @@ CSigScan sigcheckfileext_Sig;
 typedef int (*checkext_t)(const char *);
 int (*checkext_trampoline)(const char *file) = 0;
 
- INetworkStringTableContainer *netstringtables;
- INetworkStringTable *downloads = NULL;
+INetworkStringTableContainer *netstringtables;
 
 int checkext_hook(char *filename)
 {
@@ -23,14 +22,11 @@ int checkext_hook(char *filename)
 	if(!safe)
 		return 0;
 
+	INetworkStringTable *downloads = netstringtables->FindTable("downloadables");
 	if(downloads == NULL)
 	{
-		downloads = netstringtables->FindTable("downloadables");
-		if(downloads == NULL)
-		{
-			Msg("Missing downloadables string table\n");
-			return 0;
-		}
+		Msg("Missing downloadables string table\n");
+		return 0;
 	}
 	
 	int len = strlen(filename);
@@ -57,7 +53,6 @@ int checkext_hook(char *filename)
 		return safe;
 	}
 
-	Msg("File not accepted: %s\n", filename);
 	return 0;
 }
 
