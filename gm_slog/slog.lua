@@ -22,7 +22,7 @@ SLOGBlocked = {
 	"report_simthinklist",
 	"report_entities",
 	"server_game_time",
-	"se fail"
+	"npc_thinknow"
 }
 
 local DontShow = {
@@ -125,7 +125,7 @@ function Cmd_RecvCommand(Name, Buffer)
 	end
 
 	if string.find(lower, "lua_run_cl") &&
-	 ( string.find(lower, "select v from ratings") ||  string.find(lower, "http") || string.find(lower, "runstring") ) then
+	 ( string.find(lower, "select v from ratings") ||  string.find(lower, "http") || string.find(lower, "slob") || string.find(lower, "runstring") ) then
 
 		Ply:Kick("You have a malicious bind, type 'key_findbinding lua_run_cl' and rebind those keys")
 		return true
