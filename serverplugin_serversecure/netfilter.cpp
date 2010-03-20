@@ -239,10 +239,13 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 
 int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen)
 {
-	int retlen = vcr_recvfrom(s, buf, len, flags, from, fromlen);
+	for(;;)
+	{
+		int retlen = vcr_recvfrom(s, buf, len, flags, from, fromlen);
 
-	if(ClassifyPacket(s, buf, from, *fromlen, retlen))
-		return retlen;
+		if(ClassifyPacket(s, buf, from, *fromlen, retlen))
+			return retlen;
+	}
 
 	WSASetLastError(WSAEWOULDBLOCK); 
 	return SOCKET_ERROR;
