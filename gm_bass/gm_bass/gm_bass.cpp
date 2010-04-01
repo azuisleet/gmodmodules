@@ -157,7 +157,7 @@ LUA_FUNCTION(channel_setvolume)
 	CHANNELFROMLUA()
 
 	gLua->CheckType(2, GLua::TYPE_NUMBER);
-	int volume = gLua->GetInteger(2);
+	double volume = gLua->GetDouble(2);
 
 	BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
 

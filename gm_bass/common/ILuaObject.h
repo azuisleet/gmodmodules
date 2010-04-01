@@ -97,7 +97,11 @@ class ILuaObject : public ILuaObject_001
 		virtual void			SetString( const char* val ) = 0;
 
 		// Return members of table
+#ifndef NO_SDK
 		virtual CUtlLuaVector*	GetMembers( void ) = 0;
+#else
+		virtual void*	GetMembers( void ) = 0;
+#endif
 
 		// Set member 'pointer'. No GC, no metatables. 
 		virtual void			SetMemberUserDataLite( const char* strKeyName, void* pData ) = 0;
