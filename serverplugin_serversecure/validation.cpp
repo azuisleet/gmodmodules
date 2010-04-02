@@ -24,7 +24,7 @@ void ParseKeysOutOfFunc()
 		if(*ptr == 0xCC)
 			break;
 
-		if(*ptr == 0x83 && *(++ptr) == 0x3D)
+		if((*ptr == 0xA1) || (*ptr == 0x83 && *(++ptr) == 0x3D))
 		{
 			uint32 addr = *(uint32 *)(++ptr);
 			counter++;
@@ -149,7 +149,7 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 		return false;
 
 	int32 rsaident = buf.ReadLong();
-	
+
 	byte aeskey[128];
 	buf.ReadBytes(&aeskey, sizeof(aeskey));
 
@@ -162,84 +162,84 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	if(buf.GetNumBytesLeft() < ciphertextLen || plaintextLen > ciphertextLen)
 		return false;
 
-	if(*serverprivatekey_length > 0)
+	// couldn't find private key, we'll have to pass it
+	if(serverprivatekey_length == NULL || *serverprivatekey_length == 0)
+		return true;
+
+	byte *cipherbuffer = NULL, *plaintext = NULL;
+
+	try
 	{
-		byte *cipherbuffer = NULL, *plaintext = NULL;
+		AutoSeededRandomPool rng;
+		RSAES_OAEP_SHA_Decryptor d( privKey );
+		SecByteBlock recovered( d.MaxPlaintextLength( sizeof(aeskey) ) );
 
-		try
+		DecodingResult result = d.Decrypt( rng, aeskey, sizeof(aeskey), recovered );
+
+		if(!result.isValidCoding || result.messageLength != 16)
+			return false;
+
+		recovered.resize(result.messageLength);
+
+		CBC_Mode<AES>::Decryption aesDecrypt(recovered, result.messageLength, aesiv );
+
+		cipherbuffer = new byte[ciphertextLen];
+		buf.ReadBytes(cipherbuffer, ciphertextLen);
+
+		plaintext = new byte[plaintextLen];
+
+		StreamTransformationFilter dec(aesDecrypt, new ArraySink(plaintext, plaintextLen));
+		dec.Put(cipherbuffer, ciphertextLen);
+		dec.MessageEnd();
+
+		delete cipherbuffer;
+
+		uint32 ticket1, ticket2, internalip;
+		memcpy(&ticket1, plaintext, 4);
+		memcpy(&ticket2, plaintext + 6, 4);
+		memcpy(&internalip, plaintext + 12, 4);
+
+		ticket1 = ntohl(ticket1);
+		ticket2 = ntohl(ticket2);
+		internalip = ntohl(internalip);
+
+		uint16 temp;
+		memcpy(&temp, plaintext + 175, 2);
+
+		temp = ntohs(temp);
+
+		if(temp >= (plaintextLen - 14))
 		{
-			AutoSeededRandomPool rng;
-			RSAES_OAEP_SHA_Decryptor d( privKey );
-			SecByteBlock recovered( d.MaxPlaintextLength( sizeof(aeskey) ) );
+			delete plaintext;
+			return false;
+		}
 
-			DecodingResult result = d.Decrypt( rng, aeskey, sizeof(aeskey), recovered );
+		// this is the authoritative ID
+		uint32 id, server, externalip;
+		memcpy(&id, plaintext + 177 + temp + 2, 4);
+		memcpy(&server, plaintext + 177 + temp + 6, 4);
+		memcpy(&externalip, plaintext + 177 + temp + 10, 4);
 
-			if(!result.isValidCoding || result.messageLength != 16)
-				return false;
+		delete plaintext;
 
-			recovered.resize(result.messageLength);
+		in_addr tempaddr;
+		tempaddr.S_un.S_addr = externalip;
 
-			CBC_Mode<AES>::Decryption aesDecrypt(recovered, result.messageLength, aesiv );
+		if(!(tempaddr == from))
+			return false;
 
-			cipherbuffer = new byte[ciphertextLen];
-			buf.ReadBytes(cipherbuffer, ciphertextLen);
-
-			plaintext = new byte[plaintextLen];
-
-			StreamTransformationFilter dec(aesDecrypt, new ArraySink(plaintext, plaintextLen));
-			dec.Put(cipherbuffer, ciphertextLen);
-			dec.MessageEnd();
-
+		Msg("id: %d server: %d external: %s\n", id, server, inet_ntoa(tempaddr));
+	} catch(...)
+	{
+		if(cipherbuffer != NULL)
 			delete cipherbuffer;
 
-			uint32 ticket1, ticket2, internalip;
-			memcpy(&ticket1, plaintext, 4);
-			memcpy(&ticket2, plaintext + 6, 4);
-			memcpy(&internalip, plaintext + 12, 4);
-
-			ticket1 = ntohl(ticket1);
-			ticket2 = ntohl(ticket2);
-			internalip = ntohl(internalip);
-
-			uint16 temp;
-			memcpy(&temp, plaintext + 175, 2);
-
-			temp = ntohs(temp);
-
-			if(temp >= (plaintextLen - 14))
-			{
-				delete plaintext;
-				return false;
-			}
-
-			// this is the authoritative ID
-			uint32 id, server, externalip;
-			memcpy(&id, plaintext + 177 + temp + 2, 4);
-			memcpy(&server, plaintext + 177 + temp + 6, 4);
-			memcpy(&externalip, plaintext + 177 + temp + 10, 4);
-
+		if(plaintext != NULL)
 			delete plaintext;
 
-			in_addr tempaddr;
-			tempaddr.S_un.S_addr = externalip;
-
-			if(!(tempaddr == from))
-				return false;
-
-			Msg("id: %d server: %d external: %s\n", id, server, inet_ntoa(tempaddr));
-		} catch(...)
-		{
-			if(cipherbuffer != NULL)
-				delete cipherbuffer;
-
-			if(plaintext != NULL)
-				delete plaintext;
-
-			std::cerr << "Decryption error." << std::endl;
-			return false;
-		} 
-		
-	}
+		std::cerr << "Decryption error." << std::endl;
+		return false;
+	} 
 
 	return true;
 }
