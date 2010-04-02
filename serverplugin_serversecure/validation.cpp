@@ -138,6 +138,10 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	if(buf.GetNumBytesLeft() <= appticketheaderlength)
 		return false;
 
+	// at this point I'm only doing IP validation for v14
+	if(protover != 14)
+		return true;
+
 	byte scratch[20];
 	buf.ReadBytes(&scratch, appticketheaderlength);
 
