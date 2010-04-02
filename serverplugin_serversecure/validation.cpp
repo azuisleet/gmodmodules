@@ -206,7 +206,7 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 
 			temp = ntohs(temp);
 
-			if(temp > (plaintextLen - 10))
+			if(temp >= (plaintextLen - 14))
 			{
 				delete plaintext;
 				return false;
