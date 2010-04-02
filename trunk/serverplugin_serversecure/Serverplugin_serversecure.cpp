@@ -6,6 +6,8 @@ IPlayerInfoManager *playerinfomanager = NULL;
 IServerPluginHelpers *helpers = NULL;
 CGlobalVars *gpGlobals = NULL;
 
+bool initKey = false;
+
 bool lookup_userid(int userid)
 {
 	if(userid < 0)
@@ -85,6 +87,7 @@ bool CSSServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceF
 
 	NetFilter_Load();
 	FileFilter_Load();
+	initKey = Validation_Load();
 
 	return true;
 }
@@ -123,6 +126,9 @@ void CSSServerPlugin::ServerActivate( edict_t *pEdictList, int edictCount, int c
 
 void CSSServerPlugin::GameFrame( bool simulating )
 {
+	if(!initKey)
+		initKey = Validation_Load();
+
 	static time_t nextTimer = 0;
 	time_t now = time(NULL);
 
