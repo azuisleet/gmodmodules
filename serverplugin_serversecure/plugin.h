@@ -28,3 +28,8 @@ extern IVEngineServer		*engine;
 extern IPlayerInfoManager	*playerinfomanager;
 extern IServerPluginHelpers *helpers;
 extern CGlobalVars			*gpGlobals;
+
+inline bool operator==(in_addr const &a1, in_addr const &a2)
+{
+	return a1.S_un.S_addr == a2.S_un.S_addr;
+}

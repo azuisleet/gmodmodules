@@ -53,6 +53,7 @@ int checkext_hook(char *filename)
 		return safe;
 	}
 
+	Msg("Blocking download: %s\n", filename);
 	return 0;
 }
 

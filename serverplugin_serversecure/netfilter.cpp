@@ -62,11 +62,6 @@ namespace boost {
 	}
 }
 
-bool operator==(in_addr const &a1, in_addr const &a2)
-{
-	return a1.S_un.S_addr == a2.S_un.S_addr;
-}
-
 typedef boost::unordered_map<in_addr, ClientInformation *> ClientInfoMap;
 ClientInfoMap clientMap;
 
@@ -222,9 +217,15 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 			return false;
 		}
 
-		if(!ValidateKPacket((byte *)buf, retlen))
+		if(!ValidateKPacket((byte *)buf, retlen, sin->sin_addr))
 		{
 			Msg("Auth ticket did not pass local validation: %s\n", inet_ntoa(sin->sin_addr));
+
+			int len = 0;
+			byte *buff = CreateRejection("Error validating Steam ticket.", &len);
+			wsock_sendto(s, (const char *)buff, len, 0, from, fromlength);
+			delete buff;
+
 			return false;
 		}
 
@@ -239,12 +240,14 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 
 int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen)
 {
-	for(;;)
+	for(int i = 0; i < 2; ++i)
 	{
 		int retlen = vcr_recvfrom(s, buf, len, flags, from, fromlen);
 
 		if(ClassifyPacket(s, buf, from, *fromlen, retlen))
+		{
 			return retlen;
+		}
 	}
 
 	WSASetLastError(WSAEWOULDBLOCK); 
