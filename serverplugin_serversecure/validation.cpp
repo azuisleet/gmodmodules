@@ -273,7 +273,6 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from, char **out_name, ch
 				return false;
 		}
 
-		Msg("id: %d server: %d external: %s\n", id, server, inet_ntoa(tempaddr));
 	} catch(...)
 	{
 		if(cipherbuffer != NULL)

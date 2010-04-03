@@ -220,7 +220,7 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 		char *name = NULL, *password = NULL, *steamid = NULL;
 		bool validated = ValidateKPacket((byte *)buf, retlen, sin->sin_addr, &name, &password, &steamid);
 
-		Msg("Client %s connecting. (Password: %s SteamID: %s)\n", name, password, steamid);
+		Msg("Client \"%s\" [%s:%d] connecting. (Password: %s SteamID: %s)\n", name, inet_ntoa(sin->sin_addr), ntohs(sin->sin_port), password, steamid);
 
 		if(!validated)
 		{
