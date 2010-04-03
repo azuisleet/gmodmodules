@@ -11,6 +11,9 @@ byte *serverprivatekey = NULL;
 
 RSA::PrivateKey privKey;
 
+// cvars
+static ConVar cvar_ticketip("ss_enforce_ticketip", "0", 0, "Enforce ticket IP validation");
+
 void ParseKeysOutOfFunc()
 {
 	HMODULE steam = GetModuleHandleA("Steam.dll");
@@ -79,7 +82,7 @@ byte *CreateRejection(const char *reason, int *size)
 	return buff;
 }
 
-bool ValidateKPacket(byte *buffer, int length, in_addr from)
+bool ValidateKPacket(byte *buffer, int length, in_addr from, char **out_name, char **out_password, char **out_steamid)
 {
 	Msg("Validating app ticket..\n");
 	if(length <= 17)
@@ -98,21 +101,40 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	int32 challenge = buf.ReadLong();
 
 	if(buf.GetNumBytesLeft() == 0)
+	{
+		Msg("Packet length too short 1\n");
 		return false;
+	}
 
 	char name[128];
 	if(!buf.ReadString(name, sizeof(name)))
+	{
+		Msg("Could not read name\n");
 		return false;
+	}
+
+	*out_name = name;
 
 	if(buf.GetNumBytesLeft() == 0)
+	{
+		Msg("Packet length too short 2\n");
 		return false;
+	}
 
 	char password[32];
 	if(!buf.ReadString(password, sizeof(password)))
+	{
+		Msg("Could not read password\n");
 		return false;
+	}
+
+	*out_password = password;
 
 	if(buf.GetNumBytesLeft() < 10 )
+	{
+		Msg("Packet length too short 3\n");
 		return false;
+	}
 
 	int16 appticketlength = buf.ReadShort();
 
@@ -136,7 +158,10 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	}
 
 	if(buf.GetNumBytesLeft() <= appticketheaderlength)
+	{
+		Msg("Packet length too short for header length: %d\n", appticketheaderlength);
 		return false;
+	}
 
 	// at this point I'm only doing IP validation for v14
 	if(protover != 14)
@@ -146,7 +171,10 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	buf.ReadBytes(&scratch, appticketheaderlength);
 
 	if(buf.GetNumBytesLeft() <= 152)
+	{
+		Msg("Not enough bytes for valid v14 auth\n");
 		return false;
+	}
 
 	int32 rsaident = buf.ReadLong();
 
@@ -160,7 +188,10 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 	uint16 ciphertextLen = ntohs(buf.ReadShort());
 
 	if(buf.GetNumBytesLeft() < ciphertextLen || plaintextLen > ciphertextLen)
+	{
+		Msg("Bytes left: %d Cipher len: %d plaintext len: %d\n", buf.GetNumBytesLeft(), ciphertextLen, plaintextLen);
 		return false;
+	}
 
 	// couldn't find private key, we'll have to pass it
 	if(serverprivatekey_length == NULL || *serverprivatekey_length == 0)
@@ -177,7 +208,10 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 		DecodingResult result = d.Decrypt( rng, aeskey, sizeof(aeskey), recovered );
 
 		if(!result.isValidCoding || result.messageLength != 16)
+		{
+			Msg("AES key bad: %d %d\n", result.isValidCoding, result.messageLength);
 			return false;
+		}
 
 		recovered.resize(result.messageLength);
 
@@ -210,6 +244,7 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 
 		if(temp >= (plaintextLen - 14))
 		{
+			Msg("Not enough room in ticket for SteamID\n");
 			delete plaintext;
 			return false;
 		}
@@ -222,11 +257,21 @@ bool ValidateKPacket(byte *buffer, int length, in_addr from)
 
 		delete plaintext;
 
+		char steambuf[32];
+		_snprintf(steambuf, sizeof(steambuf), "STEAM_0:%lu:%lu", server, id);
+
+		*out_steamid = steambuf;
+
 		in_addr tempaddr;
 		tempaddr.S_un.S_addr = externalip;
 
 		if(!(tempaddr == from))
-			return false;
+		{
+			Msg("Bad external IP %s\n", inet_ntoa(tempaddr));
+
+			if(cvar_ticketip.GetBool())
+				return false;
+		}
 
 		Msg("id: %d server: %d external: %s\n", id, server, inet_ntoa(tempaddr));
 	} catch(...)
