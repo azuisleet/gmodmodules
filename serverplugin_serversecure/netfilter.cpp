@@ -217,7 +217,12 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 			return false;
 		}
 
-		if(!ValidateKPacket((byte *)buf, retlen, sin->sin_addr))
+		char *name = NULL, *password = NULL, *steamid = NULL;
+		bool validated = ValidateKPacket((byte *)buf, retlen, sin->sin_addr, &name, &password, &steamid);
+
+		Msg("Client %s connecting. (Password: %s SteamID: %s)\n", name, password, steamid);
+
+		if(!validated)
 		{
 			Msg("Auth ticket did not pass local validation: %s\n", inet_ntoa(sin->sin_addr));
 
