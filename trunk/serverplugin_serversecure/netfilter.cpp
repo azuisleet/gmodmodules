@@ -31,40 +31,6 @@ struct GamePacketChallenge
 };
 #pragma pack(pop)
 
-enum ClientOperationLevel
-{
-	OPERATION_NONE,
-	OPERATION_CONNECTING,
-	OPERATION_CONNECTEDPARTIAL,
-	OPERATION_CONNECTEDFULL,
-};
-
-char *levelnames[] = 
-{
-	"None",
-	"Pending",
-	"Partial",
-	"Connected"
-};
-
-struct ClientInformation
-{
-	ClientOperationLevel level;
-	uint32 challenge;
-
-	time_t timeout;
-	int userid;
-};
-
-namespace boost {
-	size_t hash_value(in_addr const &t) {
-		return t.S_un.S_addr;
-	}
-}
-
-typedef boost::unordered_map<in_addr, ClientInformation *> ClientInfoMap;
-ClientInfoMap clientMap;
-
 time_t cache_timer = 0;
 time_t cache_players_timer = 0;
 
@@ -83,18 +49,6 @@ byte CACHECHALLENGE[] = {0xFF, 0xFF, 0xFF, 0xFF, 'A', 0, 0, 0, 0};
 static ConVar cvar_cachetime("ss_query_cachetime", "5", 0, "How many seconds to cache a query");
 static ConVar cvar_showoob("ss_show_oob", "0", 0, "Print out OOB packets");
 
-// commands
-CON_COMMAND(ss_showconnections, "Show all connections")
-{
-	Msg("Active Connections:\n");
-	Msg("       IP       |   Stage\n");
-
-	for(ClientInfoMap::const_iterator iter = clientMap.begin(); iter != clientMap.end(); ++iter)
-	{
-		Msg("%-17s %-11s\n", inet_ntoa(iter->first), levelnames[iter->second->level]);
-	}
-}
-
 int (*vcr_recvfrom) (int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
 int (WINAPI *wsock_sendto) (SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
 
@@ -111,8 +65,12 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 	GamePacket *packet = (GamePacket *)buf;
 	sockaddr_in *sin = (sockaddr_in *)from;
 
+	// don't bother filtering game packets
+	if(packet->channel != OOB)
+		return true;
+
 	// cache a2s_info
-	if(packet->channel == OOB && packet->type == 'T')
+	if(packet->type == 'T')
 	{
 		if(time(NULL) > cache_timer)
 			return true;
@@ -121,7 +79,7 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 		return false;
 	}
 	// cache player requests
-	else if(packet->channel == OOB && packet->type == 'U')
+	else if(packet->type == 'U')
 	{
 		return true;
 		/*if(retlen != (int)sizeof(GamePacketServerChallenge))
@@ -141,47 +99,23 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 	}
 
 	// fast deny of packets, a2c_print, spam
-	if(packet->channel == OOB && (packet->type == 'l' || packet->type == 'i'))
+	if((packet->type == 'l' || packet->type == 'i'))
 		return false;
 
-	ClientInfoMap::const_iterator iter = clientMap.find(sin->sin_addr);
-	ClientInformation *info;
-	ClientOperationLevel oplevel = OPERATION_NONE;
+	if(cvar_showoob.GetBool())
+		Msg("packet len: %d channel: %X type %c from: %s\n", retlen, packet->channel, packet->type, inet_ntoa(sin->sin_addr));
 
-	if(iter != clientMap.end())
-	{
-		info = iter->second;
-		oplevel = info->level;
-	} else {
-		info = new ClientInformation;
-		info->level = OPERATION_NONE;
-		info->timeout = time(NULL) + 60;
-		info->challenge = 0;
-		info->userid = -1;
-
-		clientMap.insert(ClientInfoMap::value_type(sin->sin_addr, info));
-	}
-
-	if(packet->channel == OOB)
-	{
-		if(cvar_showoob.GetBool())
-			Msg("packet len: %d channel: %X type %c from: %s\n", retlen, packet->channel, packet->type, inet_ntoa(sin->sin_addr));
-	}
-
-	// pass through for players ingame
-	if(oplevel >= OPERATION_CONNECTEDPARTIAL)
-		return true;
 
 	// pass through master server specific packets
-	if(packet->channel == OOB && (packet->type == 's' || packet->type == 'X' || packet->type == 'N' || packet->type == 'O'))
+	if((packet->type == 's' || packet->type == 'X' || packet->type == 'N' || packet->type == 'O'))
 		return true;
 
 	// pass through some reasonable connectionless (lite challenge, rule info)
-	if(packet->channel == OOB && (packet->type == 'W' || packet->type == 'V'))
+	if((packet->type == 'W' || packet->type == 'V'))
 		return true;
 
 	// check for connection challenges
-	if(packet->channel == OOB && packet->type == 'q')
+	if(packet->type == 'q')
 	{
 		// let the game handle it (master server) clients shouldn't be able to get past
 		if(retlen < (int)sizeof(GamePacketFooter))
@@ -194,11 +128,10 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 			return false;
 		}
 
-		info->level = OPERATION_CONNECTING;
 		return true;
 	}
 	// check for auths 
-	else if (oplevel > OPERATION_NONE && (packet->channel == OOB && packet->type == 'k'))
+	else if (packet->type == 'k')
 	{
 		// we only need to validate the challenge, this will hinder spoof attacks a little more
 		// (they can only send the whitelisted connectionless types)
@@ -210,12 +143,6 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 		}
 
 		GamePacketChallenge *packetchallenge = (GamePacketChallenge *)buf;
-
-		if(packetchallenge->challenge != info->challenge)
-		{
-			Msg("Client sent wrong challenge: %s\n", inet_ntoa(sin->sin_addr));
-			return false;
-		}
 
 		char *name = NULL, *password = NULL, *steamid = NULL;
 		bool validated = ValidateKPacket((byte *)buf, retlen, sin->sin_addr, &name, &password, &steamid);
@@ -234,8 +161,6 @@ bool ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen
 			return false;
 		}
 
-		info->level = OPERATION_CONNECTEDPARTIAL;
-		info->timeout = time(NULL) + 60;
 		return true;
 	}
 
@@ -294,18 +219,6 @@ int WINAPI SSSendTo(SOCKET s, const char *buf, int len, int flags, const struct 
 
 				cache_players_timer = time(NULL) + cvar_cachetime.GetInt();
 			}*/
-			else if(packet->type == 'A' && len >= (int)sizeof(GamePacketServerChallenge))
-			{
-				GamePacketServerChallenge *packetsc = (GamePacketServerChallenge *)buf;
-
-				sockaddr_in *sin = (sockaddr_in *)to;
-				ClientInfoMap::const_iterator iter = clientMap.find(sin->sin_addr);
-
-				if(iter != clientMap.end())
-				{
-					iter->second->challenge = packetsc->challenge;
-				}
-			}
 		}
 	}
 
@@ -338,86 +251,20 @@ void NetFilter_Unload()
 	DetourTransactionCommit();
 
 	g_pVCR->Hook_recvfrom = vcr_recvfrom;
-
-	ClientInfoMap::iterator iter = clientMap.begin();
-	while( iter != clientMap.end() )
-	{
-		delete iter->second;
-		iter = clientMap.erase(iter);
-	}
 }
 
 void NetFilter_LevelShutdown()
 {
-	for(ClientInfoMap::const_iterator iter = clientMap.begin(); iter != clientMap.end(); ++iter)
-	{
-		if(iter->second->level == OPERATION_CONNECTEDFULL)
-		{
-			iter->second->level = OPERATION_CONNECTEDPARTIAL;
-			iter->second->timeout = time(NULL) + 30;
-		}
-	}
 }
 
 void NetFilter_ClientConnect(INetChannel *channel, edict_t *pEntity)
 {
-	const netadr_t &addr = channel->GetRemoteAddress();
-
-	in_addr temp;
-	temp.S_un.S_addr = addr.GetIP();
-
-	ClientInfoMap::iterator iter = clientMap.find(temp);
-
-	if(iter == clientMap.end())
-	{
-		Msg("A user connected we didn't know about: %s\n", addr.ToString());
-	}
-	else
-	{
-		iter->second->userid = engine->GetPlayerUserId(pEntity);
-		iter->second->level = OPERATION_CONNECTEDFULL;
-	}
 }
 
 void NetFilter_ClientDisconnect(INetChannel *channel)
 {
-	const netadr_t &addr = channel->GetRemoteAddress();
-
-	in_addr temp;
-	temp.S_un.S_addr = addr.GetIP();
-
-	ClientInfoMap::iterator iter = clientMap.find(temp);
-
-	if(iter == clientMap.end())
-	{
-		Msg("A user disconnected we didn't know about: %s\n", addr.ToString());
-	}
-	else
-	{
-		if(iter->second->level < OPERATION_CONNECTEDFULL)
-			return;
-
-		delete iter->second;
-		clientMap.erase(iter);
-	}
 }
 
 void NetFilter_Tick(const time_t& now)
 {
-	ClientInfoMap::iterator iter = clientMap.begin();
-	while( iter != clientMap.end() )
-	{
-		if(iter->second->level <= OPERATION_CONNECTEDPARTIAL && now >= iter->second->timeout)
-		{
-			delete iter->second;
-			iter = clientMap.erase(iter);
-		}
-		else if(iter->second->level == OPERATION_CONNECTEDFULL && !lookup_userid(iter->second->userid))
-		{
-			delete iter->second;
-			iter = clientMap.erase(iter);
-		}
-		else
-			++iter;
-	}
 }
