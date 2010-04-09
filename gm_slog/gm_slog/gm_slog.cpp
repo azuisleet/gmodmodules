@@ -8,13 +8,28 @@
 #include "interface.h"
 #include "eiface.h"
 #include "iclient.h"
+#include "igameevents.h"
 
 IVEngineServer	*engine = NULL;
+IGameEventManager2 *gameeventmanager = NULL;
 
 #include <windows.h>
 #include <detours.h>
+#include "vfnhook.h"
+#include "tier1.h"
 
 ILuaInterface *globalLua;
+
+DEFVFUNC_(origFireEvent, bool, (IGameEventManager2 *gem, IGameEvent *event, bool bDontBroadcast));
+bool VFUNC newFireEvent(IGameEventManager2 *gem, IGameEvent *event, bool bDontBroadcast = false)
+{
+	if(strcmp(event->GetName(), "player_disconnect") == 0)
+	{
+		event->SetString("reason", "Player dropped from server.");
+	}
+
+	return origFireEvent(gem, event, bDontBroadcast);
+}
 
 // virtual bool	ExecuteStringCommand( const char *s ) = 0;
 class CDetour
@@ -100,6 +115,8 @@ int Start(lua_State *L)
 
 	CreateInterfaceFn interfaceFactory = Sys_GetFactory( "engine.dll" );
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
+	gameeventmanager = (IGameEventManager2 *)interfaceFactory(INTERFACEVERSION_GAMEEVENTSMANAGER2, NULL);
+
 	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 
 	bool scan = CSigScan::GetDllMemInfo();
@@ -115,6 +132,8 @@ int Start(lua_State *L)
 
 	DetourTransactionCommit();
 
+	HOOKVFUNC(gameeventmanager, 7, origFireEvent, newFireEvent);
+
 	gLua->SetGlobal("AppendLog", AppendLog);
 	globalLua = gLua;
 
@@ -123,6 +142,8 @@ int Start(lua_State *L)
 
 int Close(lua_State *L)
 {
+	UNHOOKVFUNC(gameeventmanager, 7, origFireEvent);
+
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 

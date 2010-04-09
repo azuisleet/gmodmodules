@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="tier0.lib tier1.lib tier3.lib detours.lib"
+				AdditionalDependencies="tier0.lib tier1.lib tier2.lib tier3.lib vstdlib.lib detours.lib"
 				OutputFile="$(OutDir)\gm_slog.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\"
@@ -197,6 +197,10 @@
 			</File>
 			<File
 				RelativePath=".\sigscan.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vfnhook.h"
 				>
 			</File>
 			<Filter
