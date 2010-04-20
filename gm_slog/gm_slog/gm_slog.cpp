@@ -25,7 +25,10 @@ bool VFUNC newFireEvent(IGameEventManager2 *gem, IGameEvent *event, bool bDontBr
 {
 	if(strcmp(event->GetName(), "player_disconnect") == 0)
 	{
-		event->SetString("reason", "Player dropped from server.");
+		const char *msg = event->GetString("reason");
+
+		if(strlen(msg) > 128 || strlen(msg) <= 0)
+			event->SetString("reason", "Player dropped from server.");
 	}
 
 	return origFireEvent(gem, event, bDontBroadcast);
