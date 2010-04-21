@@ -307,7 +307,10 @@ LUA_FUNCTION(poll)
 		gLua->Push((float)qres->error);
 		gLua->Call(2);
 
-		free(qres->file);
+		// just incase
+		if( qres->file != NULL )
+			free(qres->file);
+
 		gLua->FreeReference(qres->callback);
 		delete qres;
 	}
