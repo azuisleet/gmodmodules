@@ -2,6 +2,8 @@
 #include "GMLuaModule.h"
 #include "gm_bass.h"
 
+#include "memdbgon.h"
+
 #define META_CHANNEL "BASSChannel"
 #define TYPE_CHANNEL 6667
 
