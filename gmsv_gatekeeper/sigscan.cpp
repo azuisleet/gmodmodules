@@ -109,9 +109,11 @@ void* CSigScan::FindSignature(void) {
     unsigned char *pEndPtr = base_addr+base_len;
     size_t i;
  
+#ifdef WIN32
 	DWORD doNotCare;
 	if ( !VirtualProtect(pBasePtr, base_len, PAGE_EXECUTE_READWRITE, &doNotCare) )
 		return NULL;
+#endif
 
     while(pBasePtr < pEndPtr - sig_len) {
         for(i = 0;i < sig_len;i++) {

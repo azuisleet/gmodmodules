@@ -56,7 +56,7 @@ void main(){
 	typedef returntype ( VFUNC * funcname##Func ) proto ; \
 	extern funcname##Func funcname ;
 
-#ifndef __LINUX__
+#ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#define WIN32_EXTRA_LEAN
 	#include <windows.h>
@@ -95,14 +95,7 @@ void main(){
 
 	inline void DeProtect(void* pMemory, unsigned int uiLen, bool bLock = false){
 		static DWORD dwIDontCare;
-
-		if ( !VirtualProtect(pMemory, uiLen, ((bLock) ? dwIDontCare : PAGE_EXECUTE_READWRITE), &dwIDontCare) )
-		{	
-			char err[256];
-			Q_snprintf(err, sizeof(err), "GetLastError: 0x%x", GetLastError());
-			MessageBox(NULL, err, "GateKeeper", MB_OK);
-		}
-
+		VirtualProtect(pMemory, uiLen, ((bLock) ? dwIDontCare : PAGE_EXECUTE_READWRITE), &dwIDontCare);
 		return;
 	}
 
@@ -134,7 +127,7 @@ void main(){
 		funcname = ( funcname##Func )VFN( classptr , index ); \
 		*(ADDRTYPE*)PVFN( classptr , index ) = newfunc ;
 
-	#define UNHOOKVFUNC( classptr , index , funcname , newfunc ) \
+	#define UNHOOKVFUNC( classptr , index , funcname ) \
 		*(ADDRTYPE*)PVFN( classptr , index ) = funcname ;
 
 #endif
