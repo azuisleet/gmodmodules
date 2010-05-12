@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="C:\SourceSDK\march2009\game\server;C:\SourceSDK\march2009\game\shared;C:\SourceSDK\march2009\common;C:\SourceSDK\march2009\public\tier0;C:\SourceSDK\march2009\public\tier1;C:\SourceSDK\march2009\public"
+				AdditionalIncludeDirectories="C:\SourceSDK\march2009\public\tier0;C:\SourceSDK\march2009\public\tier1;C:\SourceSDK\march2009\public"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GMSV_gatekeeper_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="tier0.lib tier1.lib tier2.lib tier3.lib vstdlib.lib wsock32.lib"
+				AdditionalDependencies="tier0.lib tier3.lib wsock32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\SourceSDK\OB\lib\public"
 				IgnoreDefaultLibraryNames="msvcrt.lib"

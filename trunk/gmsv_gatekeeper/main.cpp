@@ -1,10 +1,22 @@
-// GateKeeper V3
-// ComWalk 8/1/09
+// GateKeeper V4
+// ComWalk 5/11/10
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#ifdef WIN32
+	#define VTABLE_OFFSET 0
+
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+	#include "sigscan.h"
+#else
+	#define VTABLE_OFFSET 1
+
+	#include <dlfcn.h>
+	#include <sys/mman.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+#endif
+
 #include "vfnhook.h"
-#include "sigscan.h"
 
 #include <steam/steamclientpublic.h>
 #include <interface.h>
@@ -67,33 +79,27 @@ struct SteamCert
 
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
+SteamCert* steamCert = NULL;
+
+DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
+		netadr_t& netinfo, int unk1, int unk2, int unk3, char const* user, char const* pass, char const* cert, int unk4));
+void VFUNC newConnectClient(CBaseServer* srv,
+		netadr_t& netinfo, int unk1, int unk2, int unk3, char const* user, char const* pass, char const* cert, int unk4)
+{
+	steamCert = (SteamCert*) cert;
+
+	return origConnectClient(srv, netinfo, unk1, unk2, unk3, user, pass, cert, unk4);
+}
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
 bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pass, const char* user)
 {
-	// Ugly hack to get the steamcert passed to ConnectClient. Deal with it.
-	// ConnectClient args seem to have changed across HL2/EP1/OB engines,
-	// but not the order they are passed in, so avoiding another hook
-	// is a Good Thing. (With ugly execution)
-	SteamCert* cert = NULL;
-	char** StackPtr;
-
-	_asm { mov StackPtr, esp };
-	for (int i = 0; i < 32; i++)
-	{
-		if ( StackPtr[i] == user && StackPtr[i + 1] == pass)
-		{
-			cert = (SteamCert *) (StackPtr[i + 2]);
-			break;
-		}
-	}
-
 	char* steamid = "STEAM_ID_UNKNOWN";
 
 	// This should never be NULL, but if it is it means it was unable
 	// to find the call to CBaseServer::ConnectClient on the stack.
-	if ( cert != NULL )
-		steamid = cert->id.Render();
+	if ( steamCert != NULL )
+		steamid = steamCert->id.Render();
 
 	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
 		gLua->Push("PlayerPasswordAuth");
@@ -154,9 +160,11 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 
 LUA_FUNCTION(GetUserByAddress)
 {
+	if ( !pServer )
+		gLua->Error("Gatekeeper: pServer is NULL!");
+
 	gLua->CheckType(1, GLua::TYPE_STRING);
 	const char *addr = gLua->GetString(1);
-	int userid = -1;
 
 	for (int i=0; i < pServer->GetClientCount(); i++)
 	{
@@ -173,11 +181,15 @@ LUA_FUNCTION(GetUserByAddress)
 
 LUA_FUNCTION(DropAllPlayers)
 {
+	if ( !pServer )
+		gLua->Error("Gatekeeper: pServer is NULL!");
+
 	gLua->CheckType(1, GLua::TYPE_STRING);
 
 	for (int i=0; i < pServer->GetClientCount(); i++)
 	{
 		IClient* client = pServer->GetClient(i);
+
 		if(client->IsConnected())
 			client->Disconnect(gLua->GetString(1));
 	}
@@ -187,6 +199,9 @@ LUA_FUNCTION(DropAllPlayers)
 
 LUA_FUNCTION(DropPlayer)
 {
+	if ( !pServer )
+		gLua->Error("Gatekeeper: pServer is NULL!");
+
 	gLua->CheckType(1, GLua::TYPE_NUMBER);
 	gLua->CheckType(2, GLua::TYPE_STRING);
 
@@ -210,6 +225,9 @@ LUA_FUNCTION(DropPlayer)
 
 LUA_FUNCTION(GetNumClients)
 {
+	if ( !pServer )
+		gLua->Error("Gatekeeper: pServer is NULL!");
+
 	int spawning = 0;
 	int active = 0;
 	int total = 0;
@@ -259,10 +277,36 @@ char* CSteamID::Render() const
 	return szSteamID;
 }
 
+#ifndef WIN32
+	unsigned char runFrameOrig[10];
+	unsigned char* runFrame;
+
+	void tempRunFrame(CBaseServer* srv)
+	{
+		// Restore member function back to how it should be
+		memcpy(runFrame, runFrameOrig, sizeof(runFrameOrig));
+
+		long pagesize = sysconf(_SC_PAGESIZE);
+		mprotect(runFrame - ((unsigned long) runFrame % pagesize), pagesize, PROT_READ | PROT_EXEC);
+
+		// All that trouble for this pointer.
+		pServer = srv;
+
+		// Apply the hooks now that we have the pointer.
+		HOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
+		HOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient, newConnectClient);
+
+		// Now that we're done, call the original.
+		// Now featuring ugly pointer voodoo.
+		((void (*)(CBaseServer*))(runFrame))(srv);
+	}
+#endif
+
 int Load(lua_State* L)
 {
 	gLua = Lua();
 
+#ifdef WIN32
 	CSigScan::sigscan_dllfunc = Sys_GetFactory("engine.dll");
 	
 	if ( !CSigScan::GetDllMemInfo() )
@@ -278,16 +322,49 @@ int Load(lua_State* L)
 		gLua->Error("CBaseServer signature failed!");
 
 	pServer = *(CBaseServer**) sigBaseServer.sig_addr;
-	HOOKVFUNC(pServer, 57, origCheckPassword, newCheckPassword);
+
+	HOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
+	HOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient, newConnectClient);
+#else
+	// So, linux. Here we are. There's a right way and a wrong way to do this.
+	// This is the wrong way. (It still works).
+	// The problem we have is that while acquiring a pointer to CBaseServer* is
+	// relatively easy on windows, because of the code that gcc tends to generate
+	// it's very hard with linux. So, rather than acquiring a pointer to CBaseServer*,
+	// I've elected to detour a member function, grab the 'this' pointer from it, and
+	// then restore the function back to normal and continue operation just as it would
+	// with the windows binaries.
+
+	void* engine = dlopen("engine_i486.so", RTLD_LAZY);
+	runFrame = dlsym(engine, "_ZN11CBaseServer8RunFrameEv");
+
+	if ( !runFrame )
+		gLua->Error("Gatekeeper: CBaseServer::RunFrame symbol not found!");
+
+	// The address needs to be aligned to a memory page. This is ugly. Oh well.
+	long pagesize = sysconf(_SC_PAGESIZE);
+	if ( int err = mprotect(runFrame - ((unsigned long) runFrame % pagesize), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC) )
+		gLua->Error("Gatekeeper: Couldn't mprotect CBaseServer::RunFrame");
+
+	// Back up the original bytes so we can restore them later
+	memcpy(runFrameOrig, runFrame, sizeof(runFrameOrig));
+
+	// Manual detour! (ugh)
+	// mov eax, tempRunFrame;
+	// jmp eax;
+	runFrame[0] = 0xB8;
+	*(unsigned char**)(runFrame + 1) = (unsigned char*) tempRunFrame;
+	runFrame[5] = 0xFF;
+	runFrame[6] = 0xE0;
+#endif
 	
 	ILuaObject* gatekeeper = gLua->GetNewTable();
 		gatekeeper->SetMember("Drop", DropPlayer);
 		gatekeeper->SetMember("GetNumClients", GetNumClients);
 		gatekeeper->SetMember("DropAllClients", DropAllPlayers);
-
 		gatekeeper->SetMember("GetUserByAddress", GetUserByAddress);
-	gLua->SetGlobal("gatekeeper", gatekeeper);
 
+	gLua->SetGlobal("gatekeeper", gatekeeper);
 	gatekeeper->UnReference();
 
 	return 0;
@@ -296,7 +373,10 @@ int Load(lua_State* L)
 int Unload(lua_State* L)
 {
 	if ( pServer )
-		UNHOOKVFUNC(pServer, 57, origCheckPassword);
+	{
+		UNHOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword);
+		UNHOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient);
+	}
 
 	return 0;
 }
