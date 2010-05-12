@@ -335,7 +335,7 @@ int Load(lua_State* L)
 	// then restore the function back to normal and continue operation just as it would
 	// with the windows binaries.
 
-	void* engine = dlopen("engine_i486.so", RTLD_LAZY);
+	void* engine = dlopen("engine_i486.so", RTLD_LAZY | RTLD_NOLOAD);
 	runFrame = dlsym(engine, "_ZN11CBaseServer8RunFrameEv");
 
 	if ( !runFrame )
@@ -356,6 +356,8 @@ int Load(lua_State* L)
 	*(unsigned char**)(runFrame + 1) = (unsigned char*) tempRunFrame;
 	runFrame[5] = 0xFF;
 	runFrame[6] = 0xE0;
+
+	dlclose(engine);
 #endif
 	
 	ILuaObject* gatekeeper = gLua->GetNewTable();
