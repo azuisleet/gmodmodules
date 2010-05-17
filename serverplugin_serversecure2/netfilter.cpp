@@ -57,7 +57,7 @@ int injected;
 bool injectedLastCall;
 
 // cvars
-static ConVar cvar_showoob("ss_show_oob", "1", 0, "Print out OOB packets");
+static ConVar cvar_showoob("ss_show_oob", "0", 0, "Print out OOB packets");
 
 int (*vcr_recvfrom) (int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
 int (WINAPI *wsock_sendto) (SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
