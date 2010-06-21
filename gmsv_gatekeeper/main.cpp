@@ -1,5 +1,5 @@
-// GateKeeper V4
-// ComWalk 5/11/10
+// GateKeeper V4.1
+// ComWalk 6/21/10
 
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
@@ -21,7 +21,9 @@
 #include <steam/steamclientpublic.h>
 #include <interface.h>
 #include <netadr.h>
-#include <iclient.h>
+
+#include <inetmsghandler.h>
+
 #include <iserver.h>
 #include <inetchannel.h>
 
@@ -29,7 +31,45 @@
 
 GMOD_MODULE(Load, Unload)
 
-typedef void unknown_ret;
+typedef int USERID_t;
+
+// This changed. Once the 2009 sdk comes out I'll go back to using iclient.h
+class IClient : public INetChannelHandler
+{
+public:
+	virtual					~IClient() {}
+	virtual void			padding() = 0;
+	virtual void			Connect(const char * szName, int nUserID, INetChannel *pNetChannel, bool bFakePlayer) = 0;
+	virtual void			Inactivate( void ) = 0;
+	virtual	void			Reconnect( void ) = 0;
+	virtual void			Disconnect( const char *reason, ... ) = 0;
+	virtual int				GetPlayerSlot() const = 0;
+	virtual int				GetUserID() const = 0;
+	virtual const USERID_t	GetNetworkID() const = 0;
+	virtual const char		*GetClientName() const = 0;
+	virtual INetChannel		*GetNetChannel() = 0;
+	virtual IServer			*GetServer() = 0;
+	virtual const char		*GetUserSetting(const char *cvar) const = 0;
+	virtual const char		*GetNetworkIDString() const = 0;
+	virtual void			SetRate( int nRate, bool bForce ) = 0;
+	virtual int				GetRate( void ) const = 0;
+	virtual void			SetUpdateRate( int nUpdateRate, bool bForce ) = 0;
+	virtual int				GetUpdateRate( void ) const = 0;	
+	virtual void			Clear( void ) = 0;
+	virtual int				GetMaxAckTickCount() const = 0;
+	virtual bool			ExecuteStringCommand( const char *s ) = 0;
+	virtual bool			SendNetMsg(INetMessage &msg, bool bForceReliable = false) = 0;
+	virtual void			ClientPrintf (const char *fmt, ...) = 0;
+	virtual bool			IsConnected( void ) const = 0;
+	virtual bool			IsSpawned( void ) const = 0;
+	virtual bool			IsActive( void ) const = 0;
+	virtual bool			IsFakeClient( void ) const = 0;
+	virtual bool			IsHLTV( void ) const = 0;
+	virtual bool			IsHearingClient(int index) const = 0;
+	virtual bool			IsProximityHearingClient(int index) const = 0;
+	virtual void			SetMaxRoutablePayloadSize( int nMaxRoutablePayloadSize ) = 0;
+};
+
 
 // None of these are used vOv
 class CBaseClient;
@@ -37,8 +77,11 @@ class CClientFrame;
 class CFrameSnapshot;
 class bf_write;
 
+typedef void unknown_ret;
+
 class CBaseServer : public IServer {
 public:
+	virtual unknown_ret unknown01() = 0;
 	virtual unknown_ret GetCPUUsage() = 0;
 	virtual unknown_ret BroadcastPrintf( char const*, ... ) = 0;
 	virtual unknown_ret SetMaxClients( int ) = 0;
@@ -71,24 +114,25 @@ public:
 	virtual bool ShouldUpdateMasterServer() = 0;
 };
 
-struct SteamCert
-{
-	char Unknown1[16];
-	CSteamID id;
-};
-
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
-SteamCert* steamCert = NULL;
+
+uint64 rawSteamID = 0;
 
 DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
-		netadr_t& netinfo, int unk1, int unk2, int unk3, char const* user, char const* pass, char const* cert, int unk4));
+		netadr_t &netinfo, int netProt, int chal, int authProt, const char* user, const char *pass, const char* cert, int certLen));
 void VFUNC newConnectClient(CBaseServer* srv,
-		netadr_t& netinfo, int unk1, int unk2, int unk3, char const* user, char const* pass, char const* cert, int unk4)
+		netadr_t &netinfo, int netProt, int chal, int authProt, const char* user, const char *pass, const char* cert, int certLen)
 {
-	steamCert = (SteamCert*) cert;
 
-	return origConnectClient(srv, netinfo, unk1, unk2, unk3, user, pass, cert, unk4);
+	if ( netProt == 15 )
+		rawSteamID = *(uint64*)(cert + 36);
+	else if ( netProt == 14 )
+		rawSteamID = *(uint64*)(cert + 16);
+	else
+		rawSteamID = 0;
+
+	return origConnectClient(srv, netinfo, netProt, chal, authProt, user, pass, cert, certLen);
 }
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
@@ -98,8 +142,8 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 
 	// This should never be NULL, but if it is it means it was unable
 	// to find the call to CBaseServer::ConnectClient on the stack.
-	if ( steamCert != NULL )
-		steamid = steamCert->id.Render();
+	if ( rawSteamID != 0 )
+		steamid = CSteamID(rawSteamID).Render();
 
 	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
 		gLua->Push("PlayerPasswordAuth");
@@ -293,8 +337,8 @@ char* CSteamID::Render() const
 		pServer = srv;
 
 		// Apply the hooks now that we have the pointer.
-		HOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
-		HOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient, newConnectClient);
+		HOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
+		HOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient);
 
 		// Now that we're done, call the original.
 		// Now featuring ugly pointer voodoo.
@@ -323,8 +367,8 @@ int Load(lua_State* L)
 
 	pServer = *(CBaseServer**) sigBaseServer.sig_addr;
 
-	HOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
-	HOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient, newConnectClient);
+	HOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
+	HOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient);
 #else
 	// So, linux. Here we are. There's a right way and a wrong way to do this.
 	// This is the wrong way. (It still works).
@@ -376,8 +420,8 @@ int Unload(lua_State* L)
 {
 	if ( pServer )
 	{
-		UNHOOKVFUNC(pServer, (57 + VTABLE_OFFSET), origCheckPassword);
-		UNHOOKVFUNC(pServer, (48 + VTABLE_OFFSET), origConnectClient);
+		UNHOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword);
+		UNHOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient);
 	}
 
 	return 0;
