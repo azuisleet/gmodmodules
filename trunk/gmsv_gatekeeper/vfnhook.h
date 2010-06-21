@@ -95,7 +95,7 @@ void main(){
 
 	inline void DeProtect(void* pMemory, unsigned int uiLen, bool bLock = false){
 		static DWORD dwIDontCare;
-		VirtualProtect(pMemory, uiLen, ((bLock) ? dwIDontCare : PAGE_EXECUTE_READWRITE), &dwIDontCare)
+		VirtualProtect(pMemory, uiLen, ((bLock) ? dwIDontCare : PAGE_EXECUTE_READWRITE), &dwIDontCare);
 		return;
 	}
 
