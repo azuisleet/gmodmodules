@@ -258,7 +258,7 @@ void DispatchPackets()
 
 		CRecipientFromBitset filter(vec);
 
-		bf_write *bf_write = engine->UserMessageBegin(&filter, 28); // LuaUserMessage
+		bf_write *bf_write = engine->UserMessageBegin(&filter, 34); // LuaUserMessage
 
 		bf_write->WriteShort(umsgStringTableOffset);
 		bf_write->WriteOneBit(0); // important bit!
@@ -314,10 +314,12 @@ int NWUmsgTest(lua_State *)
 
 	CRecipientFromBitset filter(vec);
 
-	for(int i = 0; i < 64; i++)
+	for(int i = 25; i < 40; i++)
 	{
-		bf_write *bf_write = engine->UserMessageBegin(&filter, 28); // LuaUserMessage
-		bf_write->WriteShort(i); //umsgStringTableOffset);
+		Msg( " %d \n ", i );
+
+		bf_write *bf_write = engine->UserMessageBegin(&filter, i); // LuaUserMessage
+		bf_write->WriteShort(umsgStringTableOffset); //umsgStringTableOffset);
 		bf_write->WriteOneBit(0); // important bit!
 
 		int pos = bf_write->m_iCurBit;
