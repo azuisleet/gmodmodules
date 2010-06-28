@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../common"
+				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve-321078110c97\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\client&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\shared&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\server&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;GM_slog_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -95,7 +95,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\common"
+				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve-321078110c97\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\client&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\shared&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\server&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_slog_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -139,7 +139,7 @@
 				AdditionalDependencies="tier0.lib tier1.lib tier2.lib tier3.lib vstdlib.lib detours.lib"
 				OutputFile="$(OutDir)\gm_slog.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\"
+				AdditionalLibraryDirectories="..\;&quot;D:\hl2sdk-ob-valve-321078110c97\lib\public&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

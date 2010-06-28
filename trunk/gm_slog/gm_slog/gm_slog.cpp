@@ -1,6 +1,3 @@
-#define _RETAIL
-
-
 #include "GMLuaModule.h"
 #include "gm_slog.h"
 #include "sigscan.h"
