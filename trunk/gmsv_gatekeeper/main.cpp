@@ -1,5 +1,5 @@
-// GateKeeper V4.1
-// ComWalk 6/21/10
+// GateKeeper V4.2
+// ComWalk, VoiDeD 6/29/10
 
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
@@ -18,7 +18,9 @@
 
 #include "vfnhook.h"
 
-#include <steam/steamclientpublic.h>
+#define NO_STEAM
+#include "osw/steamworks.h"
+
 #include <interface.h>
 #include <netadr.h>
 
@@ -71,13 +73,14 @@ public:
 };
 
 
+
 // None of these are used vOv
 class CBaseClient;
 class CClientFrame;
 class CFrameSnapshot;
 class bf_write;
 
-typedef void unknown_ret;
+//typedef void unknown_ret;
 
 class CBaseServer : public IServer {
 public:
@@ -114,10 +117,77 @@ public:
 	virtual bool ShouldUpdateMasterServer() = 0;
 };
 
+
+class GSCallbacks
+{
+public:
+	GSCallbacks() : m_CallbackClientApprove( this, &GSCallbacks::Steam_OnClientApprove ),
+		m_CallbackClientDeny( this, &GSCallbacks::Steam_OnClientDeny ),
+		m_CallbackClientKick( this, &GSCallbacks::Steam_OnClientKick ),
+		m_CallbackSteamConnected( this, &GSCallbacks::Steam_OnConnect ),
+		m_CallbackSteamDisconnected( this, &GSCallbacks::Steam_OnDisconnect ) {};
+
+	STEAM_GAMESERVER_CALLBACK( GSCallbacks, Steam_OnClientDeny, GSClientDeny_t, m_CallbackClientDeny );
+	STEAM_GAMESERVER_CALLBACK( GSCallbacks, Steam_OnClientApprove, GSClientApprove_t, m_CallbackClientApprove );
+	STEAM_GAMESERVER_CALLBACK( GSCallbacks, Steam_OnClientKick, GSClientKick_t, m_CallbackClientKick );
+
+	STEAM_GAMESERVER_CALLBACK( GSCallbacks, Steam_OnConnect, SteamServersConnected_t, m_CallbackSteamConnected );
+	STEAM_GAMESERVER_CALLBACK( GSCallbacks, Steam_OnDisconnect, SteamServersDisconnected_t, m_CallbackSteamDisconnected );
+};
+
+GSCallbacks callbacks;
+
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
 
 uint64 rawSteamID = 0;
+
+void GSCallbacks::Steam_OnClientApprove(GSClientApprove_t *gsclient)
+{
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSClientApprove");
+		gLua->PushNil();
+		gLua->Push( gsclient->m_SteamID.Render() );
+	gLua->Call(3, 0);
+};
+
+void GSCallbacks::Steam_OnClientDeny(GSClientDeny_t *gsclient)
+{
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSClientDeny");
+		gLua->PushNil();
+		gLua->Push( gsclient->m_SteamID.Render() );
+		gLua->Push( (float)gsclient->m_eDenyReason );
+		gLua->Push( gsclient->m_pchOptionalText );
+	gLua->Call(5, 0);
+};
+
+void GSCallbacks::Steam_OnClientKick(GSClientKick_t *gsclient)
+{
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSClientKick");
+		gLua->PushNil();
+		gLua->Push( gsclient->m_SteamID.Render() );
+		gLua->Push( (float)gsclient->m_eDenyReason );
+	gLua->Call(4, 0);
+};
+
+void GSCallbacks::Steam_OnConnect( SteamServersConnected_t *pParam )
+{
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSSteamConnected");
+		gLua->PushNil();
+	gLua->Call(2, 0);
+}
+
+void GSCallbacks::Steam_OnDisconnect( SteamServersDisconnected_t *pParam )
+{
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSSteamDisconnected");
+		gLua->PushNil();
+		gLua->Push( (float) pParam->m_eResult );
+	gLua->Call(3, 0);
+}
 
 DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
 		netadr_t &netinfo, int netProt, int chal, int authProt, const char* user, const char *pass, const char* cert, int certLen));
@@ -126,7 +196,14 @@ void VFUNC newConnectClient(CBaseServer* srv,
 {
 
 	if ( netProt == 15 )
-		rawSteamID = *(uint64*)(cert + 36);
+	{
+		uint32 headerLen = *((uint32*)cert);
+
+		if ( headerLen <= 20 )
+			rawSteamID = *(uint64*)(cert + 4 + headerLen + 12);
+		else
+			rawSteamID = 0;
+	}
 	else if ( netProt == 14 )
 		rawSteamID = *(uint64*)(cert + 16);
 	else
@@ -143,7 +220,16 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 	// This should never be NULL, but if it is it means it was unable
 	// to find the call to CBaseServer::ConnectClient on the stack.
 	if ( rawSteamID != 0 )
-		steamid = CSteamID(rawSteamID).Render();
+		steamid = const_cast<char*>( CSteamID::Render( rawSteamID ) );
+
+	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
+		gLua->Push("GSPlayerAuth");
+		gLua->PushNil(); // Gamemode (Unnecessary, always nil)
+		gLua->Push(user);
+		gLua->Push(pass);
+		gLua->Push(steamid);
+		gLua->Push(netinfo.ToString());
+	gLua->Call(6, 0);
 
 	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
 		gLua->Push("PlayerPasswordAuth");
@@ -202,6 +288,7 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 	return origCheckPassword(srv, netinfo, pass, user);
 }
 
+
 LUA_FUNCTION(GetUserByAddress)
 {
 	if ( !pServer )
@@ -222,6 +309,7 @@ LUA_FUNCTION(GetUserByAddress)
 
 	return 0;
 }
+
 
 LUA_FUNCTION(DropAllPlayers)
 {
@@ -302,25 +390,6 @@ LUA_FUNCTION(GetNumClients)
 	return 1;
 }
 
-char* CSteamID::Render() const
-{
-	static char szSteamID[64];
-	
-	// Pirated clients (or legit clients with bad steamid tickets) seem to report
-	// values for account type and universe that are totally invalid and an account
-	// instance that is not equal to one. This should catch all of that.
-
-	// Add in event of further errors: || this->GetEAccountType() >= k_EAccountTypeMax || this->GetEUniverse() >= k_EUniverseMax 
-	if ( !this->IsValid() || this->GetUnAccountInstance() != 1)
-		Q_snprintf(szSteamID, sizeof(szSteamID), "STEAM_ID_UNKNOWN");
-	else if ( this->GetEAccountType() == k_EAccountTypePending )
-		Q_snprintf(szSteamID, sizeof(szSteamID), "STEAM_ID_PENDING");
-	else
-		Q_snprintf(szSteamID, sizeof(szSteamID), "STEAM_0:%u:%u", (m_unAccountID % 2) ? 1 : 0, m_unAccountID/2);
-
-	return szSteamID;
-}
-
 #ifndef WIN32
 	unsigned char runFrameOrig[10];
 	unsigned char* runFrame;
@@ -349,6 +418,7 @@ char* CSteamID::Render() const
 int Load(lua_State* L)
 {
 	gLua = Lua();
+
 
 #ifdef WIN32
 	CSigScan::sigscan_dllfunc = Sys_GetFactory("engine.dll");
