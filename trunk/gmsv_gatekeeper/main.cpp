@@ -364,7 +364,7 @@ LUA_FUNCTION(GetNumClients)
 	int active = 0;
 	int total = 0;
 
-	for (int i=0; i < pServer->GetNumClients(); i++)
+	for (int i=0; i < pServer->GetClientCount(); i++)
 	{
 		IClient* client = pServer->GetClient(i);
 		
