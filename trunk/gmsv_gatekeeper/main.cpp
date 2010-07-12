@@ -6,7 +6,6 @@
 
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
-	#include "sigscan.h"
 #else
 	#define VTABLE_OFFSET 1
 
@@ -16,10 +15,11 @@
 	#include <unistd.h>
 #endif
 
+#include "sigscan.h"
 #include "vfnhook.h"
 
 #define NO_STEAM
-#include "osw/steamworks.h"
+#include "osw/Steamworks.h"
 
 #include <interface.h>
 #include <netadr.h>
@@ -449,11 +449,22 @@ int Load(lua_State* L)
 	// then restore the function back to normal and continue operation just as it would
 	// with the windows binaries.
 
-	void* engine = dlopen("engine_i486.so", RTLD_LAZY | RTLD_NOLOAD);
-	runFrame = dlsym(engine, "_ZN11CBaseServer8RunFrameEv");
+	CSigScan::sigscan_dllfunc = Sys_GetFactory("engine.so");
+	
+	if ( !CSigScan::GetDllMemInfo() )
+		gLua->Error("Gatekeeper: CSigScan::GetDllMemInfo failed!");
 
-	if ( !runFrame )
-		gLua->Error("Gatekeeper: CBaseServer::RunFrame symbol not found!");
+	CSigScan sigRunFrame;
+	sigRunFrame.Init((unsigned char *)
+		"\x55\x89\xE5\x57\x56\x53\x83\xEC"
+		"\x1C\xE8\x00\x00\x00\x00\x81\xC3"
+		"\x90\x97\x22\x00\x8B\x83\x60\xFB",
+		"xxxxxxxxxx????xxxxxxxxxx", 24);
+
+	if ( !sigRunFrame.is_set )
+		gLua->Error("Gatekeeper: CBaseServer::RunFrame signature failed!");
+
+	runFrame = (unsigned char *) sigRunFrame.sig_addr;
 
 	// The address needs to be aligned to a memory page. This is ugly. Oh well.
 	long pagesize = sysconf(_SC_PAGESIZE);
@@ -470,8 +481,6 @@ int Load(lua_State* L)
 	*(unsigned char**)(runFrame + 1) = (unsigned char*) tempRunFrame;
 	runFrame[5] = 0xFF;
 	runFrame[6] = 0xE0;
-
-	dlclose(engine);
 #endif
 	
 	ILuaObject* gatekeeper = gLua->GetNewTable();
