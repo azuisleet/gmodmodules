@@ -39,6 +39,20 @@ int Start(lua_State *L)
 
 int Close(lua_State *L)
 {
+	ILuaInterface* gLua = Lua();
+	Database* mysqldb = GetMySQL( gLua );
+
+	if ( !mysqldb )
+		return 0;
+
+	while ( !mysqldb->IsSafeToShutdown() )
+	{
+		DispatchCompletedQueries( gLua, mysqldb );
+		ThreadSleep( 50 );
+	}
+
+	mysqldb->Shutdown();
+
 	return 0;
 }
 
@@ -187,10 +201,11 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 {
 	CUtlVectorMT<CUtlVector<Query*>>& completed = mysqldb->CompletedQueries();
 
-	AUTO_LOCK_FM( completed );
-
+	// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
 	if ( completed.Size() <= 0 )
 		return;
+
+	AUTO_LOCK_FM( completed );
 
 	FOR_EACH_VEC( completed, i )
 	{
