@@ -122,7 +122,7 @@ void Database::DoExecute( Query* query )
 #ifdef USE_THREAD_LOCAL
 	static THREAD_LOCAL MYSQL* pMYSQL;
 #else
-	CThreadLocalPtr<MYSQL> pMYSQL;
+	static CThreadLocalPtr<MYSQL> pMYSQL;
 #endif
 
 	if ( pMYSQL == NULL )
