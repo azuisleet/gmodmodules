@@ -54,6 +54,11 @@ bool Database::Connect( MYSQL* mysql, CUtlString& error )
 	return true;
 }
 
+bool Database::IsSafeToShutdown( void )
+{
+	return m_pThreadPool->GetJobCount() == 0;
+}
+
 void Database::Shutdown( void )
 {
 	if ( m_pThreadPool != NULL )
@@ -69,6 +74,8 @@ void Database::Shutdown( void )
 	}
 
 	m_vecAllConnections.Purge();
+	m_vecAvailableConnections.Purge();
+	m_vecCompleted.Purge();
 }
 
 char* Database::Escape( const char* query )

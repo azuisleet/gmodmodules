@@ -96,6 +96,7 @@ public:
 	~Database( void );
 
 	bool	Initialize( CUtlString& error );
+	bool	IsSafeToShutdown( void );
 	void	Shutdown( void );
 
 	bool		SetCharacterSet( const char* charset, CUtlString& error );
