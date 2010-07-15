@@ -49,7 +49,7 @@ TIER1_OBJS = \
 	$(OBJ_DIR)/tier1/KeyValues.o \
 	$(OBJ_DIR)/tier1/utlbuffer.o \
 
-INCLUDE=-I$(SOURCE_SDK)/public -I$(SOURCE_SDK)/common -I$(SOURCE_SDK)/public/tier0 -I$(SOURCE_SDK)/public/tier1 -I$(SOURCE_SDK)/tier1 
+INCLUDE=-I$(PROJECT_DIR)/src -I$(SOURCE_SDK)/public -I$(SOURCE_SDK)/common -I$(SOURCE_SDK)/public/tier0 -I$(SOURCE_SDK)/public/tier1 -I$(SOURCE_SDK)/tier1 
 
 CFLAGS=$(USER_CFLAGS) $(OPTFLAGS) -mtune=i686 -march=pentium -mmmx -msse -pipe -Dstrcmpi=strcasecmp -D_alloca=alloca -DVPROF_LEVEL=1 -DSWDS -D_LINUX -DLINUX -DNDEBUG -fpermissive -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp  -Usprintf=use_Q_snprintf_instead_of_sprintf -Ustrncpy=use_Q_strncpy_instead -Ufopen=dont_use_fopen -UPROTECTED_THINGS_ENABLE
 LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) $(LIBFILES) -shared -Wl
@@ -70,7 +70,7 @@ gatekeeper: $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS)
 install:
 	cp $(OUT_DIR)/gmsv_gatekeeper_linux.dll $(SRCDS_DIR)/garrysmod/lua/includes/modules/
 
-$(OBJ_DIR)/%.o: $(PROJECT_DIR)/%.cpp
+$(OBJ_DIR)/%.o: $(PROJECT_DIR)/src/%.cpp
 	$(DO_CC)
 
 $(OBJ_DIR)/tier0/%.o: $(SOURCE_SDK)/public/tier0/%.cpp
