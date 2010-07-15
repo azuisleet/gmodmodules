@@ -32,10 +32,6 @@ LIBFILES= \
   libtier0.so \
   libvstdlib.so \
   libsteam_api.so \
-  $(SOURCE_SDK)/lib/linux/tier3.a \
-  $(SOURCE_SDK)/lib/linux/tier2.a \
-  $(SOURCE_SDK)/lib/linux/tier1.a \
-  $(SOURCE_SDK)/lib/linux/mathlib.a \
   
 GATEKEEPER_OBJS = \
 	$(OBJ_DIR)/main.o \
@@ -44,15 +40,10 @@ GATEKEEPER_OBJS = \
 TIER0_OBJS = \
 	$(OBJ_DIR)/tier0/memoverride.o \
 
-TIER1_OBJS = \
-	$(OBJ_DIR)/tier1/interface.o \
-	$(OBJ_DIR)/tier1/KeyValues.o \
-	$(OBJ_DIR)/tier1/utlbuffer.o \
-
 INCLUDE=-I$(PROJECT_DIR)/src -I$(SOURCE_SDK)/public -I$(SOURCE_SDK)/common -I$(SOURCE_SDK)/public/tier0 -I$(SOURCE_SDK)/public/tier1 -I$(SOURCE_SDK)/tier1 
 
 CFLAGS=$(USER_CFLAGS) $(OPTFLAGS) -mtune=i686 -march=pentium -mmmx -msse -pipe -Dstrcmpi=strcasecmp -D_alloca=alloca -DVPROF_LEVEL=1 -DSWDS -D_LINUX -DLINUX -DNDEBUG -fpermissive -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp  -Usprintf=use_Q_snprintf_instead_of_sprintf -Ustrncpy=use_Q_strncpy_instead -Ufopen=dont_use_fopen -UPROTECTED_THINGS_ENABLE
-LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) $(LIBFILES) -shared -Wl
+LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) -shared -Wl
 
 DO_CC=$(CPP) $(INCLUDE) -w $(CFLAGS) -DARCH=i486 -o $@ -c $<
 
@@ -63,9 +54,8 @@ dirs:
 	-mkdir $(LIB_DIR)
 	-mkdir $(OBJ_DIR)
 	-mkdir $(OBJ_DIR)/tier0
-	-mkdir $(OBJ_DIR)/tier1
 
-gatekeeper: $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS) libs
+gatekeeper: $(GATEKEEPER_OBJS) $(TIER0_OBJS) libs
 	$(LINK) -o $(OUT_DIR)/gmsv_gatekeeper_linux.dll $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS) $(CPPLIBS) $(LFLAGS) $(CPPLIBS)
 
 install:
@@ -80,9 +70,6 @@ $(OBJ_DIR)/%.o: $(PROJECT_DIR)/src/%.cpp
 	$(DO_CC)
 
 $(OBJ_DIR)/tier0/%.o: $(SOURCE_SDK)/public/tier0/%.cpp
-	$(DO_CC)
-
-$(OBJ_DIR)/tier1/%.o: $(SOURCE_SDK)/tier1/%.cpp
 	$(DO_CC)
 
 clean:
