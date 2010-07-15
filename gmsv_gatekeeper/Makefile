@@ -9,9 +9,9 @@ OUT_DIR=./bin
 OBJ_DIR=./obj
 
 # Compilation Configuration
-CPP=/usr/bin/g++
-LINK=/usr/bin/gcc
-CPPLIBS=/usr/lib/gcc/x86_64-linux-gnu/4.4/32/libstdc++.a /usr/lib/gcc/x86_64-linux-gnu/4.4/32/libgcc_eh.a
+CPP=/usr/bin/g++-4.3
+LINK=/usr/bin/gcc-4.3
+CPPLIBS=/usr/lib/gcc/x86_64-linux-gnu/4.3/32/libstdc++.a /usr/lib/gcc/x86_64-linux-gnu/4.3/32/libgcc_eh.a
 
 USER_CFLAGS=-m32
 USER_LFLAGS=-m32
