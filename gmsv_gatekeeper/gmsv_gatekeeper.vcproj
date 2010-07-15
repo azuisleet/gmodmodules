@@ -93,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)bin"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
@@ -180,11 +180,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\src\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\sigscan.cpp"
+				RelativePath=".\src\sigscan.cpp"
 				>
 			</File>
 		</Filter>
@@ -194,30 +194,30 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\sigscan.h"
+				RelativePath=".\src\sigscan.h"
 				>
 			</File>
 			<File
-				RelativePath=".\vfnhook.h"
+				RelativePath=".\src\vfnhook.h"
 				>
 			</File>
 			<Filter
 				Name="Lua"
 				>
 				<File
-					RelativePath=".\common\GMLuaModule.h"
+					RelativePath=".\src\common\GMLuaModule.h"
 					>
 				</File>
 				<File
-					RelativePath=".\common\ILuaInterface.h"
+					RelativePath=".\src\common\ILuaInterface.h"
 					>
 				</File>
 				<File
-					RelativePath=".\common\ILuaModuleManager.h"
+					RelativePath=".\src\common\ILuaModuleManager.h"
 					>
 				</File>
 				<File
-					RelativePath=".\common\ILuaObject.h"
+					RelativePath=".\src\common\ILuaObject.h"
 					>
 				</File>
 			</Filter>
@@ -225,703 +225,703 @@
 				Name="osw"
 				>
 				<File
-					RelativePath=".\osw\AppsCommon.h"
+					RelativePath=".\src\osw\AppsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\BillingCommon.h"
+					RelativePath=".\src\osw\BillingCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\BridgeCommon.h"
+					RelativePath=".\src\osw\BridgeCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\CCallback.h"
+					RelativePath=".\src\osw\CCallback.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\CGameID.h"
+					RelativePath=".\src\osw\CGameID.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ClientCommon.h"
+					RelativePath=".\src\osw\ClientCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ContentServerCommon.h"
+					RelativePath=".\src\osw\ContentServerCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\CSteamAPIContext.h"
+					RelativePath=".\src\osw\CSteamAPIContext.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\CSteamID.h"
+					RelativePath=".\src\osw\CSteamID.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EAccountType.h"
+					RelativePath=".\src\osw\EAccountType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EChatMemberStateChange.h"
+					RelativePath=".\src\osw\EChatMemberStateChange.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ELobbyType.h"
+					RelativePath=".\src\osw\ELobbyType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ENotificationPosition.h"
+					RelativePath=".\src\osw\ENotificationPosition.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EPersonalQuestion.h"
+					RelativePath=".\src\osw\EPersonalQuestion.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EResult.h"
+					RelativePath=".\src\osw\EResult.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EServerMode.h"
+					RelativePath=".\src\osw\EServerMode.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamAppUpdateStatsQueryType.h"
+					RelativePath=".\src\osw\ESteamAppUpdateStatsQueryType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamBufferMethod.h"
+					RelativePath=".\src\osw\ESteamBufferMethod.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamError.h"
+					RelativePath=".\src\osw\ESteamError.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamFindFilter.h"
+					RelativePath=".\src\osw\ESteamFindFilter.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamNotify.h"
+					RelativePath=".\src\osw\ESteamNotify.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamPaymentCardType.h"
+					RelativePath=".\src\osw\ESteamPaymentCardType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamSeekMethod.h"
+					RelativePath=".\src\osw\ESteamSeekMethod.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamServerType.h"
+					RelativePath=".\src\osw\ESteamServerType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamSubscriptionBillingInfoType.h"
+					RelativePath=".\src\osw\ESteamSubscriptionBillingInfoType.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ESteamSubscriptionStatus.h"
+					RelativePath=".\src\osw\ESteamSubscriptionStatus.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\EUniverse.h"
+					RelativePath=".\src\osw\EUniverse.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\FriendGameInfo.h"
+					RelativePath=".\src\osw\FriendGameInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\FriendsCommon.h"
+					RelativePath=".\src\osw\FriendsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\GameCoordinatorCommon.h"
+					RelativePath=".\src\osw\GameCoordinatorCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\GameServerCommon.h"
+					RelativePath=".\src\osw\GameServerCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\gameserveritem.h"
+					RelativePath=".\src\osw\gameserveritem.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\GameServerItemsCommon.h"
+					RelativePath=".\src\osw\GameServerItemsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\GameServerStatsCommon.h"
+					RelativePath=".\src\osw\GameServerStatsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\GameStatsCommon.h"
+					RelativePath=".\src\osw\GameStatsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientAppManager.h"
+					RelativePath=".\src\osw\IClientAppManager.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientApps.h"
+					RelativePath=".\src\osw\IClientApps.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientBilling.h"
+					RelativePath=".\src\osw\IClientBilling.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientConfigStore.h"
+					RelativePath=".\src\osw\IClientConfigStore.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientContentServer.h"
+					RelativePath=".\src\osw\IClientContentServer.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientDepotBuilder.h"
+					RelativePath=".\src\osw\IClientDepotBuilder.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientEngine.h"
+					RelativePath=".\src\osw\IClientEngine.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientFriends.h"
+					RelativePath=".\src\osw\IClientFriends.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientGameCoordinator.h"
+					RelativePath=".\src\osw\IClientGameCoordinator.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientGameServer.h"
+					RelativePath=".\src\osw\IClientGameServer.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientGameStats.h"
+					RelativePath=".\src\osw\IClientGameStats.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientHTTP.h"
+					RelativePath=".\src\osw\IClientHTTP.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientMatchmaking.h"
+					RelativePath=".\src\osw\IClientMatchmaking.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientRemoteStorage.h"
+					RelativePath=".\src\osw\IClientRemoteStorage.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientUser.h"
+					RelativePath=".\src\osw\IClientUser.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\IClientUtils.h"
+					RelativePath=".\src\osw\IClientUtils.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\Interface_OSW.h"
+					RelativePath=".\src\osw\Interface_OSW.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam003.h"
+					RelativePath=".\src\osw\ISteam003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam004.h"
+					RelativePath=".\src\osw\ISteam004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam005.h"
+					RelativePath=".\src\osw\ISteam005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam006.h"
+					RelativePath=".\src\osw\ISteam006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam2Bridge001.h"
+					RelativePath=".\src\osw\ISteam2Bridge001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteam2Bridge002.h"
+					RelativePath=".\src\osw\ISteam2Bridge002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamApps001.h"
+					RelativePath=".\src\osw\ISteamApps001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamApps002.h"
+					RelativePath=".\src\osw\ISteamApps002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamApps003.h"
+					RelativePath=".\src\osw\ISteamApps003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamBilling001.h"
+					RelativePath=".\src\osw\ISteamBilling001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamBilling002.h"
+					RelativePath=".\src\osw\ISteamBilling002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamClient006.h"
+					RelativePath=".\src\osw\ISteamClient006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamClient007.h"
+					RelativePath=".\src\osw\ISteamClient007.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamClient008.h"
+					RelativePath=".\src\osw\ISteamClient008.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamClient009.h"
+					RelativePath=".\src\osw\ISteamClient009.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamContentServer001.h"
+					RelativePath=".\src\osw\ISteamContentServer001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamContentServer002.h"
+					RelativePath=".\src\osw\ISteamContentServer002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamFriends001.h"
+					RelativePath=".\src\osw\ISteamFriends001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamFriends002.h"
+					RelativePath=".\src\osw\ISteamFriends002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamFriends003.h"
+					RelativePath=".\src\osw\ISteamFriends003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamFriends004.h"
+					RelativePath=".\src\osw\ISteamFriends004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamFriends005.h"
+					RelativePath=".\src\osw\ISteamFriends005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameCoordinator001.h"
+					RelativePath=".\src\osw\ISteamGameCoordinator001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer002.h"
+					RelativePath=".\src\osw\ISteamGameServer002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer003.h"
+					RelativePath=".\src\osw\ISteamGameServer003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer004.h"
+					RelativePath=".\src\osw\ISteamGameServer004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer005.h"
+					RelativePath=".\src\osw\ISteamGameServer005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer006.h"
+					RelativePath=".\src\osw\ISteamGameServer006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer007.h"
+					RelativePath=".\src\osw\ISteamGameServer007.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer008.h"
+					RelativePath=".\src\osw\ISteamGameServer008.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer009.h"
+					RelativePath=".\src\osw\ISteamGameServer009.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServer010.h"
+					RelativePath=".\src\osw\ISteamGameServer010.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServerItems002.h"
+					RelativePath=".\src\osw\ISteamGameServerItems002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServerItems003.h"
+					RelativePath=".\src\osw\ISteamGameServerItems003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServerItems004.h"
+					RelativePath=".\src\osw\ISteamGameServerItems004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameServerStats001.h"
+					RelativePath=".\src\osw\ISteamGameServerStats001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamGameStats001.h"
+					RelativePath=".\src\osw\ISteamGameStats001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMasterServerUpdater001.h"
+					RelativePath=".\src\osw\ISteamMasterServerUpdater001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking001.h"
+					RelativePath=".\src\osw\ISteamMatchmaking001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking002.h"
+					RelativePath=".\src\osw\ISteamMatchmaking002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking003.h"
+					RelativePath=".\src\osw\ISteamMatchmaking003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking004.h"
+					RelativePath=".\src\osw\ISteamMatchmaking004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking005.h"
+					RelativePath=".\src\osw\ISteamMatchmaking005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking006.h"
+					RelativePath=".\src\osw\ISteamMatchmaking006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking007.h"
+					RelativePath=".\src\osw\ISteamMatchmaking007.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmaking008.h"
+					RelativePath=".\src\osw\ISteamMatchmaking008.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmakingServers001.h"
+					RelativePath=".\src\osw\ISteamMatchmakingServers001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamMatchmakingServers002.h"
+					RelativePath=".\src\osw\ISteamMatchmakingServers002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamNetworking001.h"
+					RelativePath=".\src\osw\ISteamNetworking001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamNetworking002.h"
+					RelativePath=".\src\osw\ISteamNetworking002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamNetworking003.h"
+					RelativePath=".\src\osw\ISteamNetworking003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamRemoteStorage001.h"
+					RelativePath=".\src\osw\ISteamRemoteStorage001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamRemoteStorage002.h"
+					RelativePath=".\src\osw\ISteamRemoteStorage002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser004.h"
+					RelativePath=".\src\osw\ISteamUser004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser005.h"
+					RelativePath=".\src\osw\ISteamUser005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser006.h"
+					RelativePath=".\src\osw\ISteamUser006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser007.h"
+					RelativePath=".\src\osw\ISteamUser007.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser008.h"
+					RelativePath=".\src\osw\ISteamUser008.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser009.h"
+					RelativePath=".\src\osw\ISteamUser009.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser010.h"
+					RelativePath=".\src\osw\ISteamUser010.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser011.h"
+					RelativePath=".\src\osw\ISteamUser011.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser012.h"
+					RelativePath=".\src\osw\ISteamUser012.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUser013.h"
+					RelativePath=".\src\osw\ISteamUser013.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserItems001.h"
+					RelativePath=".\src\osw\ISteamUserItems001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserItems002.h"
+					RelativePath=".\src\osw\ISteamUserItems002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserItems003.h"
+					RelativePath=".\src\osw\ISteamUserItems003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserItems004.h"
+					RelativePath=".\src\osw\ISteamUserItems004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats001.h"
+					RelativePath=".\src\osw\ISteamUserStats001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats002.h"
+					RelativePath=".\src\osw\ISteamUserStats002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats003.h"
+					RelativePath=".\src\osw\ISteamUserStats003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats004.h"
+					RelativePath=".\src\osw\ISteamUserStats004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats005.h"
+					RelativePath=".\src\osw\ISteamUserStats005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats006.h"
+					RelativePath=".\src\osw\ISteamUserStats006.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUserStats007.h"
+					RelativePath=".\src\osw\ISteamUserStats007.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUtils001.h"
+					RelativePath=".\src\osw\ISteamUtils001.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUtils002.h"
+					RelativePath=".\src\osw\ISteamUtils002.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUtils003.h"
+					RelativePath=".\src\osw\ISteamUtils003.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUtils004.h"
+					RelativePath=".\src\osw\ISteamUtils004.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\ISteamUtils005.h"
+					RelativePath=".\src\osw\ISteamUtils005.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\MasterServerUpdaterCommon.h"
+					RelativePath=".\src\osw\MasterServerUpdaterCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\MatchmakingCommon.h"
+					RelativePath=".\src\osw\MatchmakingCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\MatchMakingKeyValuePair.h"
+					RelativePath=".\src\osw\MatchMakingKeyValuePair.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\MatchmakingServersCommon.h"
+					RelativePath=".\src\osw\MatchmakingServersCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\NetworkingCommon.h"
+					RelativePath=".\src\osw\NetworkingCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\POSIXLibrary.h"
+					RelativePath=".\src\osw\POSIXLibrary.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\RemoteStorageCommon.h"
+					RelativePath=".\src\osw\RemoteStorageCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\servernetadr.h"
+					RelativePath=".\src\osw\servernetadr.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\Steam.h"
+					RelativePath=".\src\osw\Steam.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\SteamAPI.h"
+					RelativePath=".\src\osw\SteamAPI.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\Steamclient.h"
+					RelativePath=".\src\osw\Steamclient.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\SteamclientAPI.h"
+					RelativePath=".\src\osw\SteamclientAPI.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\SteamSalt.h"
+					RelativePath=".\src\osw\SteamSalt.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\SteamTypes.h"
+					RelativePath=".\src\osw\SteamTypes.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\Steamworks.h"
+					RelativePath=".\src\osw\Steamworks.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\string_t.h"
+					RelativePath=".\src\osw\string_t.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamApp.h"
+					RelativePath=".\src\osw\TSteamApp.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamAppDependencyInfo.h"
+					RelativePath=".\src\osw\TSteamAppDependencyInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamAppLaunchOption.h"
+					RelativePath=".\src\osw\TSteamAppLaunchOption.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamAppStats.h"
+					RelativePath=".\src\osw\TSteamAppStats.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamAppVersion.h"
+					RelativePath=".\src\osw\TSteamAppVersion.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamDiscountQualifier.h"
+					RelativePath=".\src\osw\TSteamDiscountQualifier.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamElemInfo.h"
+					RelativePath=".\src\osw\TSteamElemInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamError.h"
+					RelativePath=".\src\osw\TSteamError.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamExternalBillingInfo.h"
+					RelativePath=".\src\osw\TSteamExternalBillingInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamGlobalUserID.h"
+					RelativePath=".\src\osw\TSteamGlobalUserID.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamOfflineStatus.h"
+					RelativePath=".\src\osw\TSteamOfflineStatus.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamPaymentCardInfo.h"
+					RelativePath=".\src\osw\TSteamPaymentCardInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamPaymentCardReceiptInfo.h"
+					RelativePath=".\src\osw\TSteamPaymentCardReceiptInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamPrepurchaseInfo.h"
+					RelativePath=".\src\osw\TSteamPrepurchaseInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamPrepurchaseReceiptInfo.h"
+					RelativePath=".\src\osw\TSteamPrepurchaseReceiptInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamProgress.h"
+					RelativePath=".\src\osw\TSteamProgress.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSplitLocalUserID.h"
+					RelativePath=".\src\osw\TSteamSplitLocalUserID.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSubscription.h"
+					RelativePath=".\src\osw\TSteamSubscription.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSubscriptionBillingInfo.h"
+					RelativePath=".\src\osw\TSteamSubscriptionBillingInfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSubscriptionDiscount.h"
+					RelativePath=".\src\osw\TSteamSubscriptionDiscount.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSubscriptionReceipt.h"
+					RelativePath=".\src\osw\TSteamSubscriptionReceipt.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamSubscriptionStats.h"
+					RelativePath=".\src\osw\TSteamSubscriptionStats.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\TSteamUpdateStats.h"
+					RelativePath=".\src\osw\TSteamUpdateStats.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\UserCommon.h"
+					RelativePath=".\src\osw\UserCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\UserItemsCommon.h"
+					RelativePath=".\src\osw\UserItemsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\UserStatsCommon.h"
+					RelativePath=".\src\osw\UserStatsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\UtilsCommon.h"
+					RelativePath=".\src\osw\UtilsCommon.h"
 					>
 				</File>
 				<File
-					RelativePath=".\osw\Win32Library.h"
+					RelativePath=".\src\osw\Win32Library.h"
 					>
 				</File>
 			</Filter>
