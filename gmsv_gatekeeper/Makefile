@@ -29,9 +29,9 @@ LIBFILES= \
   $(SOURCE_SDK)/lib/linux/choreoobjects.a \
   $(SOURCE_SDK)/lib/linux/particles.a \
   $(SOURCE_SDK)/lib/linux/dmxloader.a \
-  $(SRCDS_DIR)/bin/libtier0.so \
-  $(SRCDS_DIR)/bin/libvstdlib.so \
-  $(SRCDS_DIR)/bin/libsteam_api.so \
+  libtier0.so \
+  libvstdlib.so \
+  libsteam_api.so \
   $(SOURCE_SDK)/lib/linux/tier3.a \
   $(SOURCE_SDK)/lib/linux/tier2.a \
   $(SOURCE_SDK)/lib/linux/tier1.a \
@@ -60,15 +60,21 @@ all: dirs gatekeeper install
 
 dirs:
 	-mkdir $(OUT_DIR)
+	-mkdir $(LIB_DIR)
 	-mkdir $(OBJ_DIR)
 	-mkdir $(OBJ_DIR)/tier0
 	-mkdir $(OBJ_DIR)/tier1
 
-gatekeeper: $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS)
+gatekeeper: $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS) libs
 	$(LINK) -o $(OUT_DIR)/gmsv_gatekeeper_linux.dll $(GATEKEEPER_OBJS) $(TIER1_OBJS) $(TIER0_OBJS) $(CPPLIBS) $(LFLAGS) $(CPPLIBS)
 
 install:
 	cp $(OUT_DIR)/gmsv_gatekeeper_linux.dll $(SRCDS_DIR)/garrysmod/lua/includes/modules/
+
+libs:
+	if [ ! -f "libtier0.so" ]; then ln -s $(SRCDS_DIR)/bin/libtier0.so .; fi
+	if [ ! -f "libvstdlib.so" ]; then ln -s $(SRCDS_DIR)/bin/libvstdlib.so .; fi
+	if [ ! -f "libsteam_api.so" ]; then ln -s $(SRCDS_DIR)/bin/libsteam_api.so .; fi
 
 $(OBJ_DIR)/%.o: $(PROJECT_DIR)/src/%.cpp
 	$(DO_CC)
