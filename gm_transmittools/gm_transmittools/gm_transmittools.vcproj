@@ -24,7 +24,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -44,11 +44,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve-321078110c97\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\client&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\shared&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\server&quot;"
+				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;GM_transmittools_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -64,9 +64,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="bass.lib tags.lib bass_fx.lib bassenc.lib"
+				AdditionalDependencies="tier0.lib tier1.lib detours.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../"
+				AdditionalLibraryDirectories="..\;&quot;D:\hl2sdk-ob-valve\lib\public&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -91,6 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY &quot;$(TargetPath)&quot; D:\HLServer\orangebox\garrysmod\lua\includes\modules\$(TargetFileName)"
 			/>
 		</Configuration>
 		<Configuration
@@ -121,7 +122,7 @@
 				Optimization="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve-321078110c97\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\client&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\shared&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\game\server&quot;"
+				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_transmittools_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -143,7 +144,7 @@
 				AdditionalDependencies="tier0.lib tier1.lib detours.lib"
 				OutputFile="$(OutDir)\gm_transmittools.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\;&quot;D:\hl2sdk-ob-valve-321078110c97\lib\public&quot;"
+				AdditionalLibraryDirectories="..\;&quot;D:\hl2sdk-ob-valve\lib\public&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
