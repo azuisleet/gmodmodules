@@ -40,13 +40,15 @@ int ResolveEntInfoOwner(EntInfo *ent)
 	if(entity == NULL)
 		return -1;
 
-	CBaseEntity *owner = entity->m_hOwnerEntity;
+	return -1;
+
+/*	CBaseEntity *owner = entity->m_hOwnerEntity;
 	if(owner == NULL)
 		return -1;
 
 	edict_t *pOwnerEdict = owner->edict();
 	edict_t *pBaseEdict = engine->PEntityOfEntIndex( 0 );
-	return pOwnerEdict - pBaseEdict;
+	return pOwnerEdict - pBaseEdict;*/
 }
 
 int ResolveEHandleForEntity(ILuaObject *luaobject)
@@ -381,7 +383,7 @@ int Start(lua_State *L)
 	// gEntList
 
 	// umsg pool
-	INetworkStringTable *table = networkstringtable->FindTable("LuaStringTable");
+	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
 	umsgStringTableOffset = table->AddString(true, "N") << 1 | 1; // what teh hug
 
 	ILuaObject *transmittools = gLua->GetNewTable();
