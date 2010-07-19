@@ -217,10 +217,12 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 {
 	char* steamid = "STEAM_ID_UNKNOWN";
 
+	CSteamID steam = CSteamID(rawSteamID);
+
 	// This should never be NULL, but if it is it means it was unable
 	// to find the call to CBaseServer::ConnectClient on the stack.
-	if ( rawSteamID != 0 )
-		steamid = const_cast<char*>( CSteamID::Render( rawSteamID ) );
+	if ( steam.BIndividualAccount() )
+		steamid = const_cast<char*>( steam.Render() );
 
 	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
 		gLua->Push("GSPlayerAuth");
