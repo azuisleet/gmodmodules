@@ -460,8 +460,12 @@ int Load(lua_State* L)
 	sigRunFrame.Init((unsigned char *)
 		"\x55\x89\xE5\x57\x56\x53\x83\xEC"
 		"\x1C\xE8\x00\x00\x00\x00\x81\xC3"
-		"\x00\x00\x00\x00\x8B\x83\x60\xFB",
-		"xxxxxxxxxx????xx????xxxx", 24);
+		"\x00\x00\x00\x00\x8B\x83\x60\xFB"
+		"\x00\x00\x8B\x80\x0C\x10\x00\x00",
+		"xxxxxxxx"
+		"xx????xx"
+		"????xx??"
+		"??xxxxxx", 32);
 
 	if ( !sigRunFrame.is_set )
 		gLua->Error("Gatekeeper: CBaseServer::RunFrame signature failed!");
