@@ -273,8 +273,13 @@ bool BuildTableFromQuery( ILuaInterface* gLua, Query* query )
 {
 	MYSQL_RES* result = query->GetResult();
 
+	ILuaObject *restable = gLua->GetNewTable();
+	restable->Push();
+	restable->UnReference();
+
+	// no result to push, continue, this isn't fatal
 	if ( result == NULL )
-		return false;
+		return true;
 
 	MYSQL_FIELD* fields;
 	MYSQL_ROW row = mysql_fetch_row( result );
@@ -287,10 +292,6 @@ bool BuildTableFromQuery( ILuaInterface* gLua, Query* query )
 		if ( fields == NULL )
 			return false;
 	}
-
-	ILuaObject *restable = gLua->GetNewTable();
-	restable->Push();
-	restable->UnReference();
 
 	int rowid = 1;
 
