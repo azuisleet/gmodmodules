@@ -64,7 +64,6 @@ void Database::Shutdown( void )
 	if ( m_pThreadPool != NULL )
 	{
 		m_pThreadPool->Stop();
-		m_pThreadPool->Release();
 
 		DestroyThreadPool( m_pThreadPool );
 		m_pThreadPool = NULL;
