@@ -56,7 +56,7 @@ bool Database::Connect( MYSQL* mysql, CUtlString& error )
 
 bool Database::IsSafeToShutdown( void )
 {
-	return m_pThreadPool->GetJobCount() == 0;
+	return m_pThreadPool->GetJobCount() == 0 && m_pThreadPool->NumIdleThreads() == m_pThreadPool->NumThreads();
 }
 
 void Database::Shutdown( void )
@@ -64,6 +64,8 @@ void Database::Shutdown( void )
 	if ( m_pThreadPool != NULL )
 	{
 		m_pThreadPool->Stop();
+		m_pThreadPool->Release();
+
 		DestroyThreadPool( m_pThreadPool );
 		m_pThreadPool = NULL;
 	}
