@@ -1,8 +1,8 @@
 #include "gm_cryptopp.h"
 
 // server's private key, for decryption of a certain steam feature
-int *serverprivatekey_length = (int *)0x30291394;
-byte *serverprivatekey = *(byte **)0x30291398;
+//int *serverprivatekey_length = (int *)0x30291394;
+//byte *serverprivatekey = *(byte **)0x30291398;
 
 using namespace CryptoPP;
 
