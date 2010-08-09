@@ -87,9 +87,12 @@ LUA_FUNCTION( initialize )
 		char buffer[1024];
 
 		Q_snprintf( buffer, sizeof(buffer), "Error connecting to DB: %s", error.Get() );
-		gLua->Error( buffer );
+		gLua->Msg( "%s\n", buffer );
 
-		return 0;
+		gLua->Push( false );
+		gLua->Push( buffer );
+
+		return 2;
 	}
 
 	ILuaObject* database = gLua->GetGlobal( "tmysql" );
@@ -104,7 +107,8 @@ LUA_FUNCTION( initialize )
 	gLua->Push(poll);
 	gLua->Call(3);
 
-	return 0;
+	gLua->Push( true );
+	return 1;
 }
 
 LUA_FUNCTION( escape )
