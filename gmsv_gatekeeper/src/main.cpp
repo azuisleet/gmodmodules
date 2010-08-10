@@ -215,14 +215,13 @@ void VFUNC newConnectClient(CBaseServer* srv,
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
 bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pass, const char* user)
 {
-	char* steamid = "STEAM_ID_UNKNOWN";
-
-	CSteamID steam = CSteamID(rawSteamID);
+	const char* steamid = "STEAM_ID_UNKNOWN";
+	CSteamID steam(rawSteamID);
 
 	// This should never be NULL, but if it is it means it was unable
 	// to find the call to CBaseServer::ConnectClient on the stack.
 	if ( steam.BIndividualAccount() )
-		steamid = const_cast<char*>( steam.Render() );
+		steamid = steam.Render();
 
 	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
 		gLua->Push("GSPlayerAuth");
@@ -460,19 +459,23 @@ int Load(lua_State* L)
 	sigRunFrame.Init((unsigned char *)
 		"\x55\x89\xE5\x57\x56\x53\x83\xEC"
 		"\x1C\xE8\x00\x00\x00\x00\x81\xC3"
-		"\x00\x00\x00\x00\x8B\x83\x60\xFB",
+		"\x00\x00\x00\x00\x8B\x83\x60\xFB"
+		"\x00\x00\x8B\x80\x0C\x10\x00\x00",
 		"xxxxxxxx"
 		"xx????xx"
-		"????xx??", 24);
+		"????xx??"
+		"??xxxxxx", 32);
 
 	if ( !sigRunFrame.is_set )
 		sigRunFrame.Init((unsigned char *)
 			"\xB8\x00\x00\x00\x00\xFF\xE0\xEC"
 			"\x1C\xE8\x00\x00\x00\x00\x81\xC3"
-			"\x00\x00\x00\x00\x8B\x83\x60\xFB",
+			"\x00\x00\x00\x00\x8B\x83\x60\xFB"
+			"\x00\x00\x8B\x80\x0C\x10\x00\x00",
 			"x????xxx"
 			"xx????xx"
-			"????xx??", 24);
+			"????xx??"
+			"??xxxxxx", 32);
 
 	if ( !sigRunFrame.is_set )
 		gLua->Error("Gatekeeper: CBaseServer::RunFrame signature failed!");
