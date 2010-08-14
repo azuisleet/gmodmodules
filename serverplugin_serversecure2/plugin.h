@@ -20,7 +20,7 @@
 
 #include "filecheck.h"
 #include "netfilter.h"
-
+#include "validation.h"
 
 extern IVEngineServer		*engine; 
 extern IPlayerInfoManager	*playerinfomanager;

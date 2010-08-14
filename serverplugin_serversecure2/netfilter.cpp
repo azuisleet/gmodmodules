@@ -7,29 +7,25 @@ struct GamePacket
 	uint8 type;
 };
 
-struct GamePacketFooter
-{
-	uint32 channel;
-	uint8 type;
-	char footer[15];
-};
-
-struct GamePacketServerChallenge
-{
-	uint32 channel;
-	uint8 type;
-	uint32 challenge;
-};
-
 struct GamePacketChallenge
 {
 	uint32 channel;
 	uint8 type;
-	uint32 protocolver;
-	uint32 authprotover;
 	uint32 challenge;
 };
 #pragma pack(pop)
+
+struct PendingPacket
+{
+	uint8 type;
+	union 
+	{
+		uint32 challenge;
+		byte* data;
+	};
+	int len;
+	sockaddr_in addr;
+};
 
 enum PacketClassification
 {
@@ -40,29 +36,40 @@ enum PacketClassification
 
 const uint32 OOB = 0xFFFFFFFF;
 const char FOOTER[15] = "00000000000000";
+const char QUERY[20] = "Source Engine Query";
 
-// drop-inject queue
-struct PacketStruct
-{
-	char* buffer;
-	int len;
-	char* from;
-	int fromlen;
-};
-
-CUtlStack<PacketStruct*> oobQueue;
+CUtlStack< PendingPacket > oobPacketQueue;
 
 time_t injectWindow;
 int injected;
 bool injectedLastCall;
 
 // cvars
-static ConVar cvar_showoob("ss_show_oob", "0", 0, "Print out OOB packets");
+static ConVar cvar_showoob( "ss_oob_show", "0", 0, "Print out OOB packets" );
+static ConVar cvar_oobcapacity( "ss_oob_capacity", "25", 0, "Default queue capacity" );
 
-int (*vcr_recvfrom) (int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
-int (WINAPI *wsock_sendto) (SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
+int (*vcr_recvfrom) ( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
+int (WINAPI *wsock_sendto) ( SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen );
 
-PacketClassification ClassifyPacket(int s, char *buf, sockaddr *from, int fromlength, int retlen)
+int IsReconstructable( char type )
+{
+	switch( type )
+	{
+		case 'T':
+			return 25;
+		case 'U':
+		case 'V':
+			return 9;
+		case 'W':
+			return 5;
+		case 'q':
+			return 20;
+		default:
+			return 0;
+	}
+}
+
+PacketClassification ClassifyPacket( int s, char *buf, sockaddr *from, int fromlength, int retlen )
 {
 	// ignore 0 length packets
 	if( retlen == 0 )
@@ -79,50 +86,98 @@ PacketClassification ClassifyPacket(int s, char *buf, sockaddr *from, int fromle
 		return PACKET_TYPE_GAME;
 
 	if ( 
-		packet->type != 'T'
-		&& packet->type != 'U'
-		&& packet->type != 'N'
+		packet->type != 'T'		// A2S_INFO				-	25
+		&& packet->type != 'U'	// Player info request	-	9
+
+		&& packet->type != 'N'	
 		&& packet->type != 'X'
-		&& packet->type != 'W'
-		&& packet->type != 'V'
+
+		&& packet->type != 'W'	// challenge request	-	5
+		&& packet->type != 'V'	// rules request		-	9
 		&& packet->type != 'O'
 
-		&& packet->type != 's'
-		&& packet->type != 'q'
-		&& packet->type != 'k'
+		&& packet->type != 's'	// master server challenge
+		&& packet->type != 'q'	// connect challenge	-	19
+		&& packet->type != 'k'	// steam key
 		)
 	{
 		if( cvar_showoob.GetBool() )
-			Msg("[BAD OOB] packet len: %d channel: %X type %c from: %s\n", retlen, packet->channel, packet->type, inet_ntoa(sin->sin_addr));
+			Msg( "[BAD OOB] packet len: %d channel: %X type %c from: %s\n", retlen, packet->channel, packet->type, inet_ntoa( sin->sin_addr ) );
 
 		return PACKET_TYPE_BAD;
 	}
+
+	char *name = NULL, *password = NULL;
+
+	if ( packet->type == 'k' && !ValidateKPacket( (byte *)buf, retlen, sin->sin_addr, &name, &password ) )
+	{
+		Msg( "Auth ticket did not pass local validation: %s\n", inet_ntoa( sin->sin_addr ) );
+
+		int len = 0;
+		byte *buff = CreateRejection( "Error validating Steam ticket.", &len );
+		wsock_sendto( s, (const char *)buff, len, 0, from, fromlength );
+		delete buff;
+
+		return PACKET_TYPE_BAD;
+	}
+
+	int reconlen = IsReconstructable( packet->type );
+	if ( reconlen > 0 && retlen != reconlen )
+	{
+		Msg( "Got known OOB packet outside of expected size %c: %d\n", packet->type, retlen );
+
+		return PACKET_TYPE_BAD;
+	}
+
 	if( cvar_showoob.GetBool() )
-		Msg("packet len: %d channel: %X type %c from: %s\n", retlen, packet->channel, packet->type, inet_ntoa(sin->sin_addr));
+		Msg( "packet len: %d channel: %X type %c from: %s length: %d\n", retlen, packet->channel, packet->type, inet_ntoa( sin->sin_addr ), retlen );
+
 
 	return PACKET_TYPE_OOB;
 }
 
-void DropOOB(int s, char *buf, int len, sockaddr *from, int fromlength)
+void DropOOB( int s, char *buf, int len, sockaddr *from, int fromlength )
 {
-	char* buffer = new char[len];
-	memcpy( buffer, buf, len );
+	GamePacket *packet = (GamePacket *)buf;
 
-	char* sfrom = new char[fromlength];
-	memcpy( sfrom, from, fromlength );
+	if ( cvar_showoob.GetBool() )
+	{
+		Msg( "OOB queue size: %d\n", oobPacketQueue.Count() );
+	}
 
-	PacketStruct* packet = new PacketStruct;
-	packet->buffer = buffer;
-	packet->len = len;
-	packet->from = sfrom;
-	packet->fromlen = fromlength;
+	oobPacketQueue.Push();
+	PendingPacket& pending = oobPacketQueue.Top();
 
-	oobQueue.Push( packet );
+	pending.type = packet->type;
+	memcpy( &pending.addr, from, sizeof(pending.addr) );
+
+	pending.len = len;
+
+	int reconlen = IsReconstructable( packet->type );
+	if ( reconlen > 0 )
+	{
+		if ( reconlen > 5 )
+		{
+			GamePacketChallenge *challenge = (GamePacketChallenge *)buf;
+
+			pending.challenge = challenge->challenge;
+		}
+	}
+	else
+	{
+		byte* buffer = new byte[ len ];
+		memcpy( buffer, buf, len );
+
+		pending.data = buffer;
+	}
 }
+
+
+
 
 bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 {
-	if ( oobQueue.Count() <= 0 )
+	if ( oobPacketQueue.Count() == 0 )
 	{
 		return false;
 	}
@@ -146,17 +201,48 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 		return false;
 	}
 
-	PacketStruct* packet;
-	oobQueue.Pop( packet );
+	PendingPacket& pending = oobPacketQueue.Top();
 
-	memcpy( buf, packet->buffer, packet->len );
-	*len = packet->len;
-	memcpy( from, packet->from, packet->fromlen );
+	*fromlen = sizeof( pending.addr );
+	memcpy( from, &pending.addr, *fromlen );
 
-	delete packet->buffer;
-	delete packet->from;
+	int reconlen = IsReconstructable( pending.type );
+	if ( reconlen > 0 )
+	{
+		*len = reconlen;
+		GamePacket* gamepacket = (GamePacket*) buf;
 
-	delete packet;
+		gamepacket->channel = OOB;
+		gamepacket->type = pending.type;
+
+		switch( pending.type )
+		{
+			case 'T':
+				memcpy( buf + sizeof(GamePacket), QUERY, sizeof(QUERY) );
+				break;
+
+			case 'U':
+			case 'V':
+				{
+					GamePacketChallenge* gamepacketchallenge = (GamePacketChallenge*) buf;
+					gamepacketchallenge->challenge = pending.challenge;
+					break;
+				}
+
+			case 'q':
+				memcpy( buf + sizeof(GamePacket), FOOTER, sizeof(FOOTER) );
+				break;
+		}
+	}
+	else
+	{
+		*len = pending.len;
+
+		memcpy( buf, pending.data, pending.len );
+		delete pending.data;
+	}
+
+	oobPacketQueue.Pop();
 
 	injectedLastCall = true;
 	return true;
@@ -192,6 +278,8 @@ int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int 
 
 void NetFilter_Load()
 {
+	oobPacketQueue.EnsureCapacity( cvar_oobcapacity.GetInt() );
+
 	injectWindow = time( NULL );
 	injected = 0;
 	injectedLastCall = false;
@@ -202,21 +290,7 @@ void NetFilter_Load()
 
 void NetFilter_Unload()
 {
+	oobPacketQueue.Purge();
+
 	g_pVCR->Hook_recvfrom = vcr_recvfrom;
-}
-
-void NetFilter_LevelShutdown()
-{
-}
-
-void NetFilter_ClientConnect(INetChannel *channel, edict_t *pEntity)
-{
-}
-
-void NetFilter_ClientDisconnect(INetChannel *channel)
-{
-}
-
-void NetFilter_Tick(const time_t& now)
-{
 }
