@@ -37,6 +37,8 @@ bool Database::Initialize( CUtlString& error )
 	if ( !m_pThreadPool->Start( params ) )
 	{
 		SafeRelease( m_pThreadPool );
+		error.Set( "Unable to start thread pool" );
+
 		return false;
 	}
 
@@ -141,6 +143,8 @@ void Database::DoExecute( Query* query )
 
 		pMYSQL = m_vecAvailableConnections.Head();
 		m_vecAvailableConnections.Remove( 0 );
+
+		mysql_thread_init();
 
 		Assert( pMYSQL );
 	}

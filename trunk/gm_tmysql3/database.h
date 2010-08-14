@@ -103,7 +103,7 @@ public:
 	char*		Escape( const char* query );
 	void		QueueQuery( const char* query, int callback = -1, int flags = 0, int callbackref = -1 );
 
-	CUtlVectorMT<CUtlVector<Query*>>& CompletedQueries( void ) { return m_vecCompleted; }
+	CUtlVectorMT<CUtlVector<Query*> >& CompletedQueries( void ) { return m_vecCompleted; }
 
 private:
 	bool Connect( MYSQL* mysql, CUtlString& error );
@@ -115,8 +115,8 @@ private:
 
 	IThreadPool*	m_pThreadPool;
 
-	CUtlVectorMT<CUtlVector<Query*>>						m_vecCompleted;
-	CUtlVectorMT<CUtlVectorFixed<MYSQL*, NUM_CON_DEFAULT>>	m_vecAvailableConnections;
+	CUtlVectorMT<CUtlVector<Query*> >						m_vecCompleted;
+	CUtlVectorMT<CUtlVectorFixed<MYSQL*, NUM_CON_DEFAULT> >	m_vecAvailableConnections;
 	CUtlVector<MYSQL*>										m_vecAllConnections;
 
 	CUtlString		m_strHost;
