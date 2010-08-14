@@ -47,6 +47,7 @@ bool injectedLastCall;
 // cvars
 static ConVar cvar_showoob( "ss_oob_show", "0", 0, "Print out OOB packets" );
 static ConVar cvar_oobcapacity( "ss_oob_capacity", "25", 0, "Default queue capacity" );
+static ConVar cvar_conservative( "ss_oob_conservative", "0", 0, "Use CPU conservation" );
 
 int (*vcr_recvfrom) ( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
 int (WINAPI *wsock_sendto) ( SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen );
@@ -255,7 +256,7 @@ int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int 
 		return len;
 	}
 
-	for(int i = 0; i < 2; ++i)
+	for(int i = 0; i < 2 || !cvar_conservative.GetBool(); ++i)
 	{
 		int retlen = vcr_recvfrom( s, buf, len, flags, from, fromlen );
 		PacketClassification pclass = ClassifyPacket( s, buf, from, *fromlen, retlen );
