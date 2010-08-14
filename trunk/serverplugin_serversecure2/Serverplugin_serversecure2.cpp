@@ -108,7 +108,6 @@ void CSSServerPlugin::GameFrame( bool simulating )
 
 void CSSServerPlugin::LevelShutdown( void ) 
 {
-	NetFilter_LevelShutdown();
 }
 
 void CSSServerPlugin::ClientActive( edict_t *pEntity )

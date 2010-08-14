@@ -162,7 +162,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\..\common;..\..\public;..\..\public\tier0;..\..\public\tier1,..\..\game\server,..\..\game\shared"
+				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;"
 				PreprocessorDefinitions="WIN32;_WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;Serverplugin_serversecure2ONLY;_MBCS"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -273,29 +273,25 @@
 				RelativePath=".\sigscan.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\validation.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Link Libraries"
 			Filter="lib"
 			>
 			<File
-				RelativePath="..\..\lib\public\mathlib.lib"
+				RelativePath="D:\hl2sdk-ob-valve\lib\public\mathlib.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\public\tier0.lib"
+				RelativePath="D:\hl2sdk-ob-valve\lib\public\tier0.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\public\tier1.lib"
-				>
-			</File>
-			<File
-				RelativePath="..\..\lib\public\tier2.lib"
-				>
-			</File>
-			<File
-				RelativePath="..\..\lib\public\vstdlib.lib"
+				RelativePath="D:\hl2sdk-ob-valve\lib\public\tier1.lib"
 				>
 			</File>
 		</Filter>
@@ -317,6 +313,10 @@
 			</File>
 			<File
 				RelativePath=".\sigscan.h"
+				>
+			</File>
+			<File
+				RelativePath=".\validation.h"
 				>
 			</File>
 		</Filter>

@@ -84,6 +84,11 @@ void FileFilter_Load()
 			DetourAttach(&(PVOID&)checkext_trampoline, (PVOID)(&(PVOID&)checkext_hook));
 		DetourTransactionCommit();
 	}
+	else
+	{
+		Msg("Couldn't find CheckFile function!\n");
+		return;
+	}
 }
 
 void FileFilter_Unload()
