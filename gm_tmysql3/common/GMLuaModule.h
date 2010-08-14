@@ -20,12 +20,12 @@
 	ILuaModuleManager* modulemanager = NULL;\
 	int _startfunction_( lua_State* L );\
 	int _closefunction_( lua_State* L );\
-	extern "C" int __declspec(dllexport) gmod_open( ILuaInterface* i ) \
+	DLL_EXPORT int gmod_open( ILuaInterface* i ) \
 	{ \
 		modulemanager = i->GetModuleManager();\
 		return _startfunction_( (lua_State*)(i->GetLuaState()) );\
 	}\
-	extern "C" int __declspec(dllexport) gmod_close( lua_State* L ) \
+	DLL_EXPORT int gmod_close( lua_State* L ) \
 	{\
 		_closefunction_( L );\
 		return 0;\

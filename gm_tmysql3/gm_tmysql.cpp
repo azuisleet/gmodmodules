@@ -203,7 +203,7 @@ Database* GetMySQL( ILuaInterface* gLua )
 
 void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 {
-	CUtlVectorMT<CUtlVector<Query*>>& completed = mysqldb->CompletedQueries();
+	CUtlVectorMT<CUtlVector<Query*> >& completed = mysqldb->CompletedQueries();
 
 	// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
 	if ( completed.Size() <= 0 )
