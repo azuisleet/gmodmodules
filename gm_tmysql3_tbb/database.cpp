@@ -131,8 +131,6 @@ void Database::DoExecute( Query* query )
 		pMYSQL = m_vecAvailableConnections.Head();
 		m_vecAvailableConnections.Remove( 0 );
 
-		mysql_thread_init();
-
 		Assert( pMYSQL );
 	}
 
