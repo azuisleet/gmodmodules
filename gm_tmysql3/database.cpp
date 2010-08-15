@@ -1,14 +1,14 @@
 #include "gm_tmysql.h"
 
 Database::Database( const char* host, const char* user, const char* pass, const char* db, int port ) :
-	m_strHost(host), m_strUser(user), m_strPass(pass), m_strDB(db), m_iPort(port)
+	m_strHost(host), m_strUser(user), m_strPass(pass), m_strDB(db), m_iPort(port),
+	m_pThreadPool(NULL)
 {
-	m_taskGroup = new tbb::task_group();
 }
 
 Database::~Database( void )
 {
-	delete m_taskGroup;
+
 }
 
 bool Database::Initialize( CUtlString& error )
@@ -29,6 +29,19 @@ bool Database::Initialize( CUtlString& error )
 		m_vecAllConnections.AddToTail( mysql );
 	}
 
+	m_pThreadPool = CreateThreadPool();
+
+	ThreadPoolStartParams_t params;
+	params.nThreads = NUM_THREADS_DEFAULT;
+
+	if ( !m_pThreadPool->Start( params ) )
+	{
+		SafeRelease( m_pThreadPool );
+		error.Set( "Unable to start thread pool" );
+
+		return false;
+	}
+
 	return true;
 }
 
@@ -43,15 +56,20 @@ bool Database::Connect( MYSQL* mysql, CUtlString& error )
 	return true;
 }
 
-void Database::FinishAllQueries( void )
+bool Database::IsSafeToShutdown( void )
 {
-	tbb::task_group_status status = m_taskGroup->wait();
+	return m_pThreadPool->GetJobCount() == 0 && m_pThreadPool->NumIdleThreads() == m_pThreadPool->NumThreads();
 }
 
 void Database::Shutdown( void )
 {
-	m_taskGroup->cancel();
-	m_taskGroup->wait();
+	if ( m_pThreadPool != NULL )
+	{
+		m_pThreadPool->Stop();
+
+		DestroyThreadPool( m_pThreadPool );
+		m_pThreadPool = NULL;
+	}
 
 	FOR_EACH_VEC( m_vecAllConnections, i )
 	{
@@ -96,7 +114,7 @@ void Database::QueueQuery( const char* query, int callback, int flags, int callb
 
 void Database::QueueQuery( Query* query )
 {
-	m_taskGroup->run( DoQueryTask( this, query ) );
+	CJob* job = m_pThreadPool->QueueCall( this, &Database::DoExecute, query );
 }
 
 
@@ -123,15 +141,8 @@ void Database::DoExecute( Query* query )
 
 		Assert( m_vecAvailableConnections.Size() > 0 );
 
-		if ( m_vecAvailableConnections.Size() <= 0 )
-		{
-			Msg( "No available connections!\n" );
-		}
-
 		pMYSQL = m_vecAvailableConnections.Head();
 		m_vecAvailableConnections.Remove( 0 );
-
-		mysql_thread_init();
 
 		Assert( pMYSQL );
 	}
@@ -166,10 +177,4 @@ void Database::DoExecute( Query* query )
 	}
 
 	YieldPostCompleted( query );
-}
-
-
-void DoQueryTask::operator() () const
-{
-	m_pDatabase->DoExecute( m_pQuery );
 }
