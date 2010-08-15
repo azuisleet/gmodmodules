@@ -6,7 +6,9 @@
 
 #include "utlvector.h"
 #include "utlstack.h"
-#include "jobthread.h"
+#include "utlstring.h"
+
+#include "tbb/tbb.h"
 
 #include "common/GMLuaModule.h"
 #include "database.h"

@@ -15,8 +15,14 @@ bool BuildTableFromQuery( ILuaInterface* gLua, Query* query );
 void HandleQueryCallback( ILuaInterface* gLua, Query* query );
 Database* GetMySQL( ILuaInterface* gLua );
 
+tbb::task_scheduler_init* tsi;
+
 int Start(lua_State *L)
 {
+	mysql_library_init( 0, NULL, NULL );
+
+	tsi = new tbb::task_scheduler_init( NUM_THREADS_DEFAULT );
+
 	ILuaInterface *gLua = Lua();
 
 	gLua->SetGlobal( "QUERY_SUCCESS", (float)QUERY_SUCCESS );
@@ -42,16 +48,20 @@ int Close(lua_State *L)
 	ILuaInterface* gLua = Lua();
 	Database* mysqldb = GetMySQL( gLua );
 
-	if ( !mysqldb )
-		return 0;
-
-	while ( !mysqldb->IsSafeToShutdown() )
+	if ( mysqldb )
 	{
+		mysqldb->FinishAllQueries();
 		DispatchCompletedQueries( gLua, mysqldb );
-		ThreadSleep( 50 );
+
+		mysqldb->Shutdown();
+
+		delete mysqldb;
 	}
 
-	mysqldb->Shutdown();
+	tsi->terminate();
+	delete tsi;
+
+	mysql_library_end();
 
 	return 0;
 }
@@ -346,6 +356,11 @@ int main(int argc, char** argv)
 	static int i = 0;
 	while ( true )
 	{
+		if ( ++i < 5000 )
+		{
+			database->QueueQuery( "SELECT 1+1" );
+		}
+
 		{
 			AUTO_LOCK_FM( completed );
 
@@ -354,11 +369,18 @@ int main(int argc, char** argv)
 				Query* query = completed[i];
 				printf( "query: %s; callback %d; status %d time: %f\n", query->GetQuery(), query->GetCallback(), query->GetStatus(), query->GetQueryTime() );
 
-				BuildTableFromQuery( NULL, query );
+				if ( query->GetResult() != NULL )
+				{
+					mysql_free_result( query->GetResult() );
+				}
+
+				delete query;
 			}
 
 			completed.RemoveAll();
+
 		}
+
 		Sleep( 1 );
 	}
 }
