@@ -34,21 +34,6 @@ private:
 };
 #endif
 
-class Query;
-class Database;
-
-class DoQueryTask
-{
-private:
-	Query* m_pQuery;
-	Database* m_pDatabase;
-
-public:
-	DoQueryTask( Database* database, Query* query ) : m_pDatabase( database ), m_pQuery( query ) {}
-
-	void operator() () const;
-};
-
 class Query
 {
 public:
@@ -111,7 +96,7 @@ public:
 	~Database( void );
 
 	bool	Initialize( CUtlString& error );
-	void	FinishAllQueries( void );
+	bool	IsSafeToShutdown( void );
 	void	Shutdown( void );
 
 	bool		SetCharacterSet( const char* charset, CUtlString& error );
@@ -120,15 +105,15 @@ public:
 
 	CUtlVectorMT<CUtlVector<Query*> >& CompletedQueries( void ) { return m_vecCompleted; }
 
-	void DoExecute( Query* query );
 private:
 	bool Connect( MYSQL* mysql, CUtlString& error );
 
 	void QueueQuery( Query* query );
 
+	void DoExecute( Query* query );
 	void YieldPostCompleted( Query* query );
 
-	tbb::task_group*	m_taskGroup;
+	IThreadPool*	m_pThreadPool;
 
 	CUtlVectorMT<CUtlVector<Query*> >						m_vecCompleted;
 	CUtlVectorMT<CUtlVectorFixed<MYSQL*, NUM_CON_DEFAULT> >	m_vecAvailableConnections;
