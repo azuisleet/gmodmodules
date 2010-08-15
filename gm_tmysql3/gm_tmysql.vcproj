@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;"
+				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;;E:\tbb\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;GM_TMYSQL_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -67,7 +67,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libmysql.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;E:\mysql-5.1.48-win32\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;E:\mysql-5.1.48-win32\lib\opt&quot;;E:\tbb\lib\ia32\vc9"
 				IgnoreDefaultLibraryNames="LIBCMTD"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -127,7 +127,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;"
+				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;;E:\tbb\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_TMYSQL_EXPORTS"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -156,7 +156,7 @@
 				AdditionalDependencies="libmysql.lib"
 				OutputFile="$(OutDir)\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;E:\mysql-5.1.48-win32\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;E:\mysql-5.1.48-win32\lib\opt&quot;;E:\tbb\lib\ia32\vc9"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -553,10 +553,6 @@
 				RelativePath=".\gm_tmysql.cpp"
 				>
 			</File>
-			<File
-				RelativePath="D:\hl2sdk-ob-valve-321078110c97\public\tier0\memoverride.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -589,15 +585,11 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="D:\hl2sdk-ob-valve-321078110c97\lib\public\tier0.lib"
+			RelativePath="D:\hl2sdk-ob-valve\lib\public\tier0.lib"
 			>
 		</File>
 		<File
-			RelativePath="D:\hl2sdk-ob-valve-321078110c97\lib\public\tier1.lib"
-			>
-		</File>
-		<File
-			RelativePath="D:\hl2sdk-ob-valve-321078110c97\lib\public\vstdlib.lib"
+			RelativePath="D:\hl2sdk-ob-valve\lib\public\tier1.lib"
 			>
 		</File>
 	</Files>

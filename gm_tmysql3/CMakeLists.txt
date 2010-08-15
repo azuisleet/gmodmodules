@@ -14,21 +14,25 @@ set(CMAKE_SHARED_LIBRARY_SUFFIX "_linux.dll")
 endif(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
 
-find_path(SDK_DIR notes.txt)
-find_path(MYSQL_INCLUDE_DIR NAMES mysql.h)
+find_path(SDK_DIR NAMES)
+find_path(MYSQL_INCLUDE_DIR NAMES)
+find_path(TBB_DIR NAMES)
 
 if(MSVC)
 	link_directories("${SDK_DIR}/lib/public")
+	link_directories("${TBB_DIR}/lib/ia32/vc9")
 	
 	find_path(MYSQL_LINK_DIR NAMES libmysql.lib)
 else()
 	link_directories("${SDK_DIR}/lib/linux")
+	link_directories("${TBB_DIR}/lib/ia32/cc4.1.0_libc2.4_kernel2.6.16.21")
+	
 	add_definitions(-D_LINUX -DLINUX -mtune=i686 -march=pentium3 -mmmx -m32 -DVPROF_LEVEL=1 -DSWDS -D_finite=finite -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -Usprintf -Ustrncpy -UPROTECTED_THINGS_ENABLE)
 
 	find_path(MYSQL_LINK_DIR NAMES libmysqlclient.a)
 endif()
 
-include_directories("${SDK_DIR}/public" "${SDK_DIR}/public/tier1" "${SDK_DIR}/public/tier0" "${SDK_DIR}/public/vstdlib")
+include_directories("${SDK_DIR}/public" "${SDK_DIR}/public/tier1" "${SDK_DIR}/public/tier0" "${TBB_DIR}/include")
 include_directories("${MYSQL_INCLUDE_DIR}")
 link_directories("${MYSQL_LINK_DIR}")
 
@@ -36,11 +40,11 @@ add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp)
 
 
 if(MSVC)
-	target_link_libraries(gm_tmysql tier0 tier1 vstdlib)
+	target_link_libraries(gm_tmysql tier0 tier1)
 	
 	target_link_libraries(gm_tmysql libmysql)
 else()
-	target_link_libraries(gm_tmysql tier0 vstdlib)
+	target_link_libraries(gm_tmysql tier0)
 	target_link_libraries(gm_tmysql ${SDK_DIR}/lib/linux/tier1_i486.a)
 	
 	target_link_libraries(gm_tmysql mysqlclient)
