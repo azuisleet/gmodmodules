@@ -45,7 +45,7 @@ INCLUDE=-I$(PROJECT_DIR)/src -I$(SOURCE_SDK)/public -I$(SOURCE_SDK)/common -I$(S
 CFLAGS=$(USER_CFLAGS) $(OPTFLAGS) -mtune=i686 -march=pentium -mmmx -msse -pipe -Dstrcmpi=strcasecmp -D_alloca=alloca -DVPROF_LEVEL=1 -DSWDS -D_LINUX -DLINUX -DNDEBUG -fpermissive -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp  -Usprintf=use_Q_snprintf_instead_of_sprintf -Ustrncpy=use_Q_strncpy_instead -Ufopen=dont_use_fopen -UPROTECTED_THINGS_ENABLE
 LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) -shared -Wl
 
-DO_CC=$(CPP) $(INCLUDE) -w $(CFLAGS) -DARCH=i486 -o $@ -c $<
+DO_CC=$(CPP) $(INCLUDE) -g -w $(CFLAGS) -DARCH=i486 -o $@ -c $<
 
 all: dirs gatekeeper install
 
