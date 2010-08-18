@@ -2,6 +2,8 @@
 #include "sigscan.h"
 #include "networkstringtabledefs.h"
 
+#ifdef WIN32
+
 //_ZN8CNetChan22IsValidFileForTransferEPKc
 #define SIG_CHECKFILE "\x56\x8B\x74\x24\x08\x85\xF6\x74\x12\x80"
 #define SIG_CHECKFILEMASK "xxxxxxxxxx"
@@ -101,3 +103,15 @@ void FileFilter_Unload()
 		DetourTransactionCommit();
 	}
 }
+
+#else
+
+void FileFilter_Load()
+{
+}
+
+void FileFilter_Unload()
+{
+}
+
+#endif

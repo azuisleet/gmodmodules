@@ -50,7 +50,6 @@ static ConVar cvar_oobcapacity( "ss_oob_capacity", "25", 0, "Default queue capac
 static ConVar cvar_conservative( "ss_oob_conservative", "0", 0, "Use CPU conservation" );
 
 int (*vcr_recvfrom) ( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
-int (WINAPI *wsock_sendto) ( SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen );
 
 int IsReconstructable( char type )
 {
@@ -116,7 +115,7 @@ PacketClassification ClassifyPacket( int s, char *buf, sockaddr *from, int froml
 
 		int len = 0;
 		byte *buff = CreateRejection( "Error validating Steam ticket.", &len );
-		wsock_sendto( s, (const char *)buff, len, 0, from, fromlength );
+		sendto( s, (const char *)buff, len, 0, from, fromlength );
 		delete buff;
 
 		return PACKET_TYPE_BAD;
@@ -272,9 +271,13 @@ int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int 
 		}
 	}
 
+#ifdef WIN32
 	WSASetLastError(WSAEWOULDBLOCK); 
 	return SOCKET_ERROR;
-
+#else
+	errno = EWOULDBLOCK;
+	return -1;
+#endif
 }
 
 void NetFilter_Load()
