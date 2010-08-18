@@ -13,10 +13,16 @@
 #include "netadr.h"
 #include "tier1/utlstack.h"
 
-#include <winsock2.h>
 #include <time.h>
 
+#ifdef WIN32
+#include <winsock2.h>
 #include <detours.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 
 #include "filecheck.h"
 #include "netfilter.h"
