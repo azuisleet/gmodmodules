@@ -32,11 +32,11 @@ int Start(lua_State *L)
 	gLua->SetGlobal( "QUERY_FLAG_LASTID", (float)QUERY_FLAG_LASTID );
 
 	ILuaObject* mfunc = gLua->GetNewTable();
-		mfunc->SetMember("initialize", initialize);
-		mfunc->SetMember("query", query);
-		mfunc->SetMember("escape", escape);
-		mfunc->SetMember("setcharset", setcharset);
-		mfunc->SetMember("poll", poll);
+		mfunc->SetMember( "initialize", initialize );
+		mfunc->SetMember( "query", query );
+		mfunc->SetMember( "escape", escape );
+		mfunc->SetMember( "setcharset", setcharset );
+		mfunc->SetMember( "poll", poll );
 	gLua->SetGlobal( "tmysql", mfunc );
 	mfunc->UnReference();
 
@@ -73,17 +73,17 @@ LUA_FUNCTION( initialize )
 	if ( GetMySQL( gLua ) )
 		return 0;
 
-	gLua->CheckType(1, GLua::TYPE_STRING);
-	gLua->CheckType(2, GLua::TYPE_STRING);
-	gLua->CheckType(3, GLua::TYPE_STRING);
-	gLua->CheckType(4, GLua::TYPE_STRING);
-	gLua->CheckType(5, GLua::TYPE_NUMBER);
+	gLua->CheckType( 1, GLua::TYPE_STRING );
+	gLua->CheckType( 2, GLua::TYPE_STRING );
+	gLua->CheckType( 3, GLua::TYPE_STRING );
+	gLua->CheckType( 4, GLua::TYPE_STRING );
+	gLua->CheckType( 5, GLua::TYPE_NUMBER );
 
-	const char* host = gLua->GetString(1);
-	const char* user = gLua->GetString(2);
-	const char* pass = gLua->GetString(3);
-	const char* db = gLua->GetString(4);
-	int port = gLua->GetInteger(5);
+	const char* host = gLua->GetString( 1 );
+	const char* user = gLua->GetString( 2 );
+	const char* pass = gLua->GetString( 3 );
+	const char* db = gLua->GetString( 4 );
+	int port = gLua->GetInteger( 5 );
 
 	if(port == 0)
 		port = 3306;
@@ -109,13 +109,13 @@ LUA_FUNCTION( initialize )
 	database->SetMemberUserDataLite( USERDATA_PTR, mysqldb );
 
 	// hook.Add("Think", "TMysqlPoll", tmysql.poll)
-	ILuaObject *hookt = gLua->GetGlobal("hook");
-	ILuaObject *addf = hookt->GetMember("Add");
+	ILuaObject *hookt = gLua->GetGlobal( "hook" );
+	ILuaObject *addf = hookt->GetMember( "Add" );
 	addf->Push();
-	gLua->Push("Think");
-	gLua->Push("TMysqlPoll");
-	gLua->Push(poll);
-	gLua->Call(3);
+	gLua->Push( "Think" );
+	gLua->Push( "TMysqlPoll" );
+	gLua->Push( poll );
+	gLua->Call( 3 );
 
 	gLua->Push( true );
 	return 1;
@@ -171,17 +171,17 @@ LUA_FUNCTION( query )
 	const char* query = gLua->GetString( 1 );
 
 	int callbackfunc = -1;
-	if(gLua->GetType(2) == GLua::TYPE_FUNCTION) 
+	if ( gLua->GetType( 2 ) == GLua::TYPE_FUNCTION ) 
 	{
-		callbackfunc = gLua->GetReference(2);
+		callbackfunc = gLua->GetReference( 2 );
 	}
 
-	int flags = gLua->GetInteger(3);
+	int flags = gLua->GetInteger( 3 );
 
 	int callbackref = -1;
-	if(gLua->GetStackTop() == 5)
+	if ( gLua->GetStackTop() == 5 )
 	{
-		callbackref = gLua->GetReference(4);
+		callbackref = gLua->GetReference( 4 );
 	}
 
 
@@ -219,26 +219,30 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 	if ( completed.Size() <= 0 )
 		return;
 
-	AUTO_LOCK_FM( completed );
-
-	FOR_EACH_VEC( completed, i )
 	{
-		Query* query = completed[i];
+		AUTO_LOCK_FM( completed );
 
-		if ( query->GetCallback() >= 0 )
+		FOR_EACH_VEC( completed, i )
 		{
-			HandleQueryCallback( gLua, query );
+			Query* query = completed[i];
+
+			if ( query->GetCallback() >= 0 )
+			{
+				HandleQueryCallback( gLua, query );
+			}
+
+			if ( query->GetResult() != NULL )
+			{
+				mysql_free_result( query->GetResult() );
+			}
+
+			Msg("deleting %x, %d\n", query, g_pMemAlloc->GetSize(query));
+
+			delete query;
 		}
 
-		if ( query->GetResult() != NULL )
-		{
-			mysql_free_result( query->GetResult() );
-		}
-
-		delete query;
+		completed.RemoveAll();
 	}
-
-	completed.RemoveAll();
 }
 
 void HandleQueryCallback( ILuaInterface* gLua, Query* query )

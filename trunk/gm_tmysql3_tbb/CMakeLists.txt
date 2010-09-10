@@ -36,8 +36,7 @@ include_directories("${SDK_DIR}/public" "${SDK_DIR}/public/tier1" "${SDK_DIR}/pu
 include_directories("${MYSQL_INCLUDE_DIR}")
 link_directories("${MYSQL_LINK_DIR}")
 
-add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp)
-
+add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp ${SDK_DIR}/public/tier0/memoverride.cpp)
 
 if(MSVC)
 	target_link_libraries(gm_tmysql tier0 tier1)

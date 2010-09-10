@@ -553,6 +553,10 @@
 				RelativePath=".\gm_tmysql.cpp"
 				>
 			</File>
+			<File
+				RelativePath="D:\hl2sdk-ob-valve-321078110c97\public\tier0\memoverride.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
