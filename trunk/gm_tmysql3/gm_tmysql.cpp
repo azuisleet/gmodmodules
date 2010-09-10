@@ -217,26 +217,28 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 	if ( completed.Size() <= 0 )
 		return;
 
-	AUTO_LOCK_FM( completed );
-
-	FOR_EACH_VEC( completed, i )
 	{
-		Query* query = completed[i];
+		AUTO_LOCK_FM( completed );
 
-		if ( query->GetCallback() >= 0 )
+		FOR_EACH_VEC( completed, i )
 		{
-			HandleQueryCallback( gLua, query );
+			Query* query = completed[i];
+
+			if ( query->GetCallback() >= 0 )
+			{
+				HandleQueryCallback( gLua, query );
+			}
+
+			if ( query->GetResult() != NULL )
+			{
+				mysql_free_result( query->GetResult() );
+			}
+
+			delete query;
 		}
 
-		if ( query->GetResult() != NULL )
-		{
-			mysql_free_result( query->GetResult() );
-		}
-
-		delete query;
+		completed.RemoveAll();
 	}
-
-	completed.RemoveAll();
 }
 
 void HandleQueryCallback( ILuaInterface* gLua, Query* query )

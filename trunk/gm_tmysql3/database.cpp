@@ -115,6 +115,8 @@ void Database::QueueQuery( const char* query, int callback, int flags, int callb
 void Database::QueueQuery( Query* query )
 {
 	CJob* job = m_pThreadPool->QueueCall( this, &Database::DoExecute, query );
+
+	SafeRelease( job );
 }
 
 
