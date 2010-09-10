@@ -236,8 +236,6 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 				mysql_free_result( query->GetResult() );
 			}
 
-			Msg("deleting %x, %d\n", query, g_pMemAlloc->GetSize(query));
-
 			delete query;
 		}
 
