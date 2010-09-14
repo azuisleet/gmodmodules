@@ -40,14 +40,23 @@ const char QUERY[20] = "Source Engine Query";
 
 CUtlStack< PendingPacket > oobPacketQueue;
 
-time_t injectWindow;
 int injected;
-bool injectedLastCall;
+int injectedCalls;
+
+int maxallocated;
 
 // cvars
 static ConVar cvar_showoob( "ss_oob_show", "0", 0, "Print out OOB packets" );
 static ConVar cvar_oobcapacity( "ss_oob_capacity", "25", 0, "Default queue capacity" );
-static ConVar cvar_conservative( "ss_oob_conservative", "0", 0, "Use CPU conservation" );
+static ConVar cvar_conservative( "ss_oob_conservative", "1", 0, "Use CPU conservation" );
+static ConVar cvar_callhogging( "ss_oob_callhogging", "2", 0, "Number of recv calls to hog" );
+
+static ConVarRef sv_max_queries_sec_global("sv_max_queries_sec_global");
+
+CON_COMMAND( ss_maxallocation, "Shows max allocated stack for OOB queue" )
+{
+	Msg("Max allocated: %d\n", maxallocated);
+}
 
 int (*vcr_recvfrom) ( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
 
@@ -124,7 +133,8 @@ PacketClassification ClassifyPacket( int s, char *buf, sockaddr *from, int froml
 	int reconlen = IsReconstructable( packet->type );
 	if ( reconlen > 0 && retlen != reconlen )
 	{
-		Msg( "Got known OOB packet outside of expected size %c: %d\n", packet->type, retlen );
+		if( cvar_showoob.GetBool() )
+			Msg( "Got known OOB packet outside of expected size %c: %d\n", packet->type, retlen );
 
 		return PACKET_TYPE_BAD;
 	}
@@ -147,6 +157,8 @@ void DropOOB( int s, char *buf, int len, sockaddr *from, int fromlength )
 
 	oobPacketQueue.Push();
 	PendingPacket& pending = oobPacketQueue.Top();
+
+	maxallocated = max( maxallocated, oobPacketQueue.Count() );
 
 	pending.type = packet->type;
 	memcpy( &pending.addr, from, sizeof(pending.addr) );
@@ -182,22 +194,9 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 		return false;
 	}
 
-	if ( injectedLastCall )
+	if ( injectedCalls <= 0 )
 	{
-		injectedLastCall = false;
-		return false;
-	}
-
-	time_t now = time( NULL );
-	if ( now > injectWindow )
-	{
-		injectWindow = now;
-		injected = 0;
-	}
-
-	// has to be less than sv_max_queries_sec_global
-	if ( injected > 50 )
-	{
+		injectedCalls = cvar_callhogging.GetInt();
 		return false;
 	}
 
@@ -244,7 +243,7 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 
 	oobPacketQueue.Pop();
 
-	injectedLastCall = true;
+	injectedCalls--;
 	return true;
 }
 
@@ -284,9 +283,12 @@ void NetFilter_Load()
 {
 	oobPacketQueue.EnsureCapacity( cvar_oobcapacity.GetInt() );
 
-	injectWindow = time( NULL );
+	sv_max_queries_sec_global.Init("sv_max_queries_sec_global", false);
+	sv_max_queries_sec_global.SetValue( 1500 );
+
 	injected = 0;
-	injectedLastCall = false;
+	injectedCalls = cvar_callhogging.GetInt();
+	maxallocated = 0;
 
 	vcr_recvfrom = g_pVCR->Hook_recvfrom;
 	g_pVCR->Hook_recvfrom = &SSRecvFrom;
