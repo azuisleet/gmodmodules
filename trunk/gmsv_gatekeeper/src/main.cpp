@@ -100,7 +100,7 @@ public:
 	virtual unknown_ret UserInfoChanged( int ) = 0;
 	virtual unknown_ret RejectConnection( netadr_s const&, char*, ... ) = 0;
 	virtual bool CheckIPRestrictions( netadr_s const&, int ) = 0;
-	virtual void* ConnectClient( netadr_s&, int, int, int, char const*, char const*, char const*, int ) = 0;
+	virtual void* ConnectClient( netadr_s&, int, int, int, int, char const*, char const*, char const*, int ) = 0;
 	virtual unknown_ret GetFreeClient( netadr_s& ) = 0;
 	virtual unknown_ret CreateNewClient( int ) = 0;
 	virtual unknown_ret FinishCertificateCheck( netadr_s&, int, char const* ) = 0;
@@ -190,9 +190,9 @@ void GSCallbacks::Steam_OnDisconnect( SteamServersDisconnected_t *pParam )
 }
 
 DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
-		netadr_t &netinfo, int netProt, int chal, int authProt, const char* user, const char *pass, const char* cert, int certLen));
+		netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char* user, const char *pass, const char* cert, int certLen));
 void VFUNC newConnectClient(CBaseServer* srv,
-		netadr_t &netinfo, int netProt, int chal, int authProt, const char* user, const char *pass, const char* cert, int certLen)
+		netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char* user, const char *pass, const char* cert, int certLen)
 {
 
 	if ( netProt == 15 )
@@ -209,7 +209,7 @@ void VFUNC newConnectClient(CBaseServer* srv,
 	else
 		rawSteamID = 0;
 
-	return origConnectClient(srv, netinfo, netProt, chal, authProt, user, pass, cert, certLen);
+	return origConnectClient(srv, netinfo, netProt, chal, authProt, challenge, user, pass, cert, certLen);
 }
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
