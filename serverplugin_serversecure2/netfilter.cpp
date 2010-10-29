@@ -222,15 +222,16 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 
 			case 'U':
 			case 'V':
+			case 'q':
 				{
 					GamePacketChallenge* gamepacketchallenge = (GamePacketChallenge*) buf;
 					gamepacketchallenge->challenge = pending.challenge;
+
+					if ( pending.type == 'q')
+						memcpy( buf + sizeof(GamePacketChallenge), FOOTER, sizeof(FOOTER) );
+
 					break;
 				}
-
-			case 'q':
-				memcpy( buf + sizeof(GamePacket), FOOTER, sizeof(FOOTER) );
-				break;
 		}
 	}
 	else
