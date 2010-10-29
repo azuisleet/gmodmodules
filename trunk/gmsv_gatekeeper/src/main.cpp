@@ -84,7 +84,7 @@ class bf_write;
 
 class CBaseServer : public IServer {
 public:
-	virtual unknown_ret unknown01() = 0;
+	//virtual unknown_ret unknown01() = 0;
 	virtual unknown_ret GetCPUUsage() = 0;
 	virtual unknown_ret BroadcastPrintf( char const*, ... ) = 0;
 	virtual unknown_ret SetMaxClients( int ) = 0;
@@ -98,7 +98,10 @@ public:
 	virtual unknown_ret SendClientMessages( bool ) = 0;
 	virtual unknown_ret FillServerInfo( SVC_ServerInfo& ) = 0;
 	virtual unknown_ret UserInfoChanged( int ) = 0;
-	virtual unknown_ret RejectConnection( netadr_s const&, char*, ... ) = 0;
+	virtual unknown_ret RejectConnection( netadr_s const&, int, const char* ) = 0;
+	
+	virtual void SomethingSendingOOBAPacket(); // win32?
+
 	virtual bool CheckIPRestrictions( netadr_s const&, int ) = 0;
 	virtual void* ConnectClient( netadr_s&, int, int, int, int, char const*, char const*, char const*, int ) = 0;
 	virtual unknown_ret GetFreeClient( netadr_s& ) = 0;
@@ -141,6 +144,7 @@ CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
 
 uint64 rawSteamID = 0;
+int clientChallenge = 0;
 
 void GSCallbacks::Steam_OnClientApprove(GSClientApprove_t *gsclient)
 {
@@ -192,8 +196,9 @@ void GSCallbacks::Steam_OnDisconnect( SteamServersDisconnected_t *pParam )
 DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
 		netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char* user, const char *pass, const char* cert, int certLen));
 void VFUNC newConnectClient(CBaseServer* srv,
-		netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char* user, const char *pass, const char* cert, int certLen)
+		netadr_t &netinfo, int netProt, int chal, int clientchal, int authProt, const char* user, const char *pass, const char* cert, int certLen)
 {
+	clientChallenge = clientchal;
 
 	if ( netProt == 15 )
 	{
@@ -209,7 +214,7 @@ void VFUNC newConnectClient(CBaseServer* srv,
 	else
 		rawSteamID = 0;
 
-	return origConnectClient(srv, netinfo, netProt, chal, authProt, challenge, user, pass, cert, certLen);
+	return origConnectClient(srv, netinfo, netProt, chal, clientchal, authProt, user, pass, cert, certLen);
 }
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
@@ -249,7 +254,7 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 	}
 	else if ( ret->GetType() == GLua::TYPE_STRING )
 	{
-		srv->RejectConnection(netinfo, "%s", ret->GetString());
+		srv->RejectConnection( netinfo, clientChallenge, ret->GetString() );
 		return false;
 	}
 	else if ( ret->GetType() == GLua::TYPE_TABLE )
@@ -270,7 +275,7 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 				{
 					if ( reason->GetType() == GLua::TYPE_STRING )
 					{
-						srv->RejectConnection(netinfo, "%s", reason->GetString());
+						srv->RejectConnection( netinfo, clientChallenge, reason->GetString() );
 					}
 					else if ( !reason->isNil() )
 					{
