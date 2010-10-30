@@ -40,7 +40,7 @@ class IClient : public INetChannelHandler
 {
 public:
 	virtual					~IClient() {}
-	virtual void			padding() = 0;
+//	virtual void			padding() = 0;
 	virtual void			Connect(const char * szName, int nUserID, INetChannel *pNetChannel, bool bFakePlayer) = 0;
 	virtual void			Inactivate( void ) = 0;
 	virtual	void			Reconnect( void ) = 0;
