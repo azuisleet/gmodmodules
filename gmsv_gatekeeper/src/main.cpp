@@ -40,7 +40,6 @@ class IClient : public INetChannelHandler
 {
 public:
 	virtual					~IClient() {}
-//	virtual void			padding() = 0;
 	virtual void			Connect(const char * szName, int nUserID, INetChannel *pNetChannel, bool bFakePlayer) = 0;
 	virtual void			Inactivate( void ) = 0;
 	virtual	void			Reconnect( void ) = 0;
@@ -82,9 +81,9 @@ class bf_write;
 
 //typedef void unknown_ret;
 
+
 class CBaseServer : public IServer {
 public:
-	//virtual unknown_ret unknown01() = 0;
 	virtual unknown_ret GetCPUUsage() = 0;
 	virtual unknown_ret BroadcastPrintf( char const*, ... ) = 0;
 	virtual unknown_ret SetMaxClients( int ) = 0;
@@ -99,9 +98,6 @@ public:
 	virtual unknown_ret FillServerInfo( SVC_ServerInfo& ) = 0;
 	virtual unknown_ret UserInfoChanged( int ) = 0;
 	virtual unknown_ret RejectConnection( netadr_s const&, int, const char* ) = 0;
-	
-	virtual void SomethingSendingOOBAPacket(); // win32?
-
 	virtual bool CheckIPRestrictions( netadr_s const&, int ) = 0;
 	virtual void* ConnectClient( netadr_s&, int, int, int, int, char const*, char const*, char const*, int ) = 0;
 	virtual unknown_ret GetFreeClient( netadr_s& ) = 0;
@@ -143,8 +139,8 @@ GSCallbacks callbacks;
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
 
-uint64 rawSteamID = 0;
-int clientChallenge = 0;
+static uint64 rawSteamID = 0;
+static int clientChallenge = 0;
 
 void GSCallbacks::Steam_OnClientApprove(GSClientApprove_t *gsclient)
 {
