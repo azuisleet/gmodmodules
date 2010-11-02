@@ -400,13 +400,11 @@ LUA_FUNCTION(GetNumClients)
 	{
 		// Restore member function back to how it should be
 		memcpy(runFrame, runFrameOrig, sizeof(runFrameOrig));
-
-		long pagesize = sysconf(_SC_PAGESIZE);
-		mprotect(runFrame - ((unsigned long) runFrame % pagesize), pagesize, PROT_READ | PROT_EXEC);
+		ReProtect( runFrame );
 
 		// All that trouble for this pointer.
 		pServer = srv;
-
+ 
 		// Apply the hooks now that we have the pointer.
 		HOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
 		HOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient);
@@ -484,8 +482,7 @@ int Load(lua_State* L)
 	runFrame = (unsigned char *) sigRunFrame.sig_addr;
 
 	// The address needs to be aligned to a memory page. This is ugly. Oh well.
-	long pagesize = sysconf(_SC_PAGESIZE);
-	if ( int err = mprotect(runFrame - ((unsigned long) runFrame % pagesize), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC) )
+	if ( DeProtect( runFrame ) )
 		gLua->Error("Gatekeeper: Couldn't mprotect CBaseServer::RunFrame");
 
 	// Back up the original bytes so we can restore them later

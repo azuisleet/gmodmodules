@@ -118,17 +118,34 @@ void main(){
 
 #else
 
+	// how does Windows reprotect?
+	inline int DeProtect(void* pMemory)
+	{
+		long pagesize = sysconf(_SC_PAGESIZE);
+		return mprotect(pMemory - ((unsigned long)pMemory % pagesize), pagesize, PROT_WRITE | PROT_READ | PROT_EXEC );
+	}
+
+	inline int ReProtect(void* pMemory)
+	{
+		long pagesize = sysconf(_SC_PAGESIZE);
+		return mprotect(pMemory - ((unsigned long)pMemory % pagesize), pagesize, PROT_READ | PROT_EXEC );
+	}
+
 	#define VFUNC
 
 	#define DEFVFUNC( funcname , returntype , proto ) \
 		funcname##Func funcname = NULL; 
 
 	#define HOOKVFUNC( classptr , index , funcname , newfunc ) \
+		DeProtect( VTBL( classptr ) ); \
 		funcname = ( funcname##Func )VFN( classptr , index ); \
-		*(ADDRTYPE*)PVFN( classptr , index ) = newfunc ;
+		*(ADDRTYPE*)PVFN( classptr , index ) = newfunc ; \
+		ReProtect( VTBL( classptr ) );
 
 	#define UNHOOKVFUNC( classptr , index , funcname  ) \
-		*(ADDRTYPE*)PVFN( classptr , index ) = funcname ;
+		DeProtect( VTBL( classptr ) ); \
+		*(ADDRTYPE*)PVFN( classptr , index ) = funcname ; \
+		ReProtect( VTBL( classptr ) );
 
 #endif
 
