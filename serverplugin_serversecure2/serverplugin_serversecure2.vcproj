@@ -294,6 +294,10 @@
 				RelativePath="D:\hl2sdk-ob-valve\lib\public\tier1.lib"
 				>
 			</File>
+			<File
+				RelativePath="D:\hl2sdk-ob-valve\lib\public\vstdlib.lib"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

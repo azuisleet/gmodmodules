@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include "utlbuffer.h"
 
 // Interfaces from the engine
 IVEngineServer	*engine = NULL; 
