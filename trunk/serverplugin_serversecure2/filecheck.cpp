@@ -10,15 +10,21 @@
 #define SIG_CHECKFILELEN 10
 CSigScan sigcheckfileext_Sig;
 
-typedef int (*checkext_t)(const char *);
-int (*checkext_trampoline)(const char *file) = 0;
+// cvars
+static ConVar cvar_showcheck( "ss_filecheck_show", "0", 0, "Print out file checks" );
+
+typedef bool (*checkext_t)(const char *);
+bool (*checkext_trampoline)(const char *file) = 0;
 
 INetworkStringTableContainer *netstringtables;
 
-int checkext_hook(char *filename)
+bool checkext_hook(char *filename)
 {
 	if(filename == NULL)
 		return 0;
+
+	if ( cvar_showcheck.GetBool() )
+		Msg("Checking file %s\n", filename );
 
 	int safe = checkext_trampoline(filename);
 	if(!safe)
