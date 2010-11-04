@@ -52,6 +52,7 @@ static ConVar cvar_conservative( "ss_oob_conservative", "1", 0, "Use CPU conserv
 static ConVar cvar_callhogging( "ss_oob_callhogging", "2", 0, "Number of recv calls to hog" );
 
 static ConVarRef sv_max_queries_sec_global("sv_max_queries_sec_global");
+static ConVarRef sv_max_queries_window("sv_max_queries_window");
 
 CON_COMMAND( ss_maxallocation, "Shows max allocated stack for OOB queue" )
 {
@@ -285,7 +286,10 @@ void NetFilter_Load()
 	oobPacketQueue.EnsureCapacity( cvar_oobcapacity.GetInt() );
 
 	sv_max_queries_sec_global.Init("sv_max_queries_sec_global", false);
-	sv_max_queries_sec_global.SetValue( 1500 );
+	sv_max_queries_sec_global.SetValue( 99999999 ); // sick number
+
+	sv_max_queries_window.Init("sv_max_queries_window", false);
+	sv_max_queries_window.SetValue( 1 );
 
 	injected = 0;
 	injectedCalls = cvar_callhogging.GetInt();
