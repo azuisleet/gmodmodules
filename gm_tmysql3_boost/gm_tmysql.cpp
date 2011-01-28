@@ -92,14 +92,23 @@ LUA_FUNCTION( initialize )
 
 	if ( !mysqldb->Initialize( error ) )
 	{
-		std::string error = str( format( "Error connecting to DB: %s" ) % error );
+		try
+		{
+			std::string ferr = str( format( "Error connecting to DB: %s" ) % error );
 
-		gLua->Msg( "%s\n", error.c_str() );
+			gLua->Msg( "%s\n", ferr.c_str() );
 
-		gLua->Push( false );
-		gLua->Push( error.c_str() );
+			gLua->Push( false );
+			gLua->Push( error.c_str() );
 
-		return 2;
+			return 2;
+		}
+		catch(std::exception e)
+		{
+			gLua->Push( false );
+
+			return 1;
+		}
 	}
 
 	ILuaObject* database = gLua->GetGlobal( "tmysql" );
@@ -346,32 +355,12 @@ int main(int argc, char** argv)
 {
 	Database* database = new Database("127.0.0.1", "root", "", "test", 3306);
 
-	CUtlString error;
+	std::string error;
 	if ( !database->Initialize( error ) )
 	{
-		printf("error: %s\n", error);
+		printf("error: %s\n", error.c_str());
 		return 0;
 	}
 
-	CUtlVectorMT<CUtlVector<Query*>>& completed = database->CompletedQueries();
-
-	static int i = 0;
-	while ( true )
-	{
-		{
-			AUTO_LOCK_FM( completed );
-
-			FOR_EACH_VEC( completed, i )
-			{
-				Query* query = completed[i];
-				printf( "query: %s; callback %d; status %d time: %f\n", query->GetQuery(), query->GetCallback(), query->GetStatus(), query->GetQueryTime() );
-
-				BuildTableFromQuery( NULL, query );
-			}
-
-			completed.RemoveAll();
-		}
-		Sleep( 1 );
-	}
 }
 */
