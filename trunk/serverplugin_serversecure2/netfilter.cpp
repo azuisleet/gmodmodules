@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include <deque>
 
 #pragma pack(push, 1)
 struct GamePacket
@@ -38,7 +39,7 @@ const uint32 OOB = 0xFFFFFFFF;
 const char FOOTER[15] = "00000000000000";
 const char QUERY[20] = "Source Engine Query";
 
-CUtlStack< PendingPacket > oobPacketQueue;
+std::deque< PendingPacket > oobPacketQueue;
 
 int injected;
 int injectedCalls;
@@ -102,8 +103,8 @@ PacketClassification ClassifyPacket( int s, char *buf, sockaddr *from, int froml
 		&& packet->type != 'N'	
 		&& packet->type != 'X'
 
-		&& packet->type != 'W'	// challenge request	-	5
-		&& packet->type != 'V'	// rules request		-	9
+//		&& packet->type != 'W'	// challenge request	-	5
+//		&& packet->type != 'V'	// rules request		-	9
 		&& packet->type != 'O'
 
 		&& packet->type != 's'	// master server challenge
@@ -153,13 +154,13 @@ void DropOOB( int s, char *buf, int len, sockaddr *from, int fromlength )
 
 	if ( cvar_showoob.GetBool() )
 	{
-		Msg( "OOB queue size: %d\n", oobPacketQueue.Count() );
+		Msg( "OOB queue size: %d\n", oobPacketQueue.size() );
 	}
 
-	oobPacketQueue.Push();
-	PendingPacket& pending = oobPacketQueue.Top();
+	oobPacketQueue.push_back(PendingPacket());
+	PendingPacket& pending = oobPacketQueue.back();
 
-	maxallocated = max( maxallocated, oobPacketQueue.Count() );
+	maxallocated = max( maxallocated, oobPacketQueue.size() );
 
 	pending.type = packet->type;
 	memcpy( &pending.addr, from, sizeof(pending.addr) );
@@ -190,7 +191,7 @@ void DropOOB( int s, char *buf, int len, sockaddr *from, int fromlength )
 
 bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 {
-	if ( oobPacketQueue.Count() == 0 )
+	if ( oobPacketQueue.size() == 0 )
 	{
 		return false;
 	}
@@ -201,7 +202,8 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 		return false;
 	}
 
-	PendingPacket& pending = oobPacketQueue.Top();
+	PendingPacket& pending = oobPacketQueue.front();
+	oobPacketQueue.pop_front();
 
 	*fromlen = sizeof( pending.addr );
 	memcpy( from, &pending.addr, *fromlen );
@@ -243,8 +245,6 @@ bool InjectOOB( char* buf, int* len, sockaddr* from, int* fromlen )
 		delete pending.data;
 	}
 
-	oobPacketQueue.Pop();
-
 	injectedCalls--;
 	return true;
 }
@@ -283,8 +283,6 @@ int SSRecvFrom(int s, char *buf, int len, int flags, struct sockaddr *from, int 
 
 void NetFilter_Load()
 {
-	oobPacketQueue.EnsureCapacity( cvar_oobcapacity.GetInt() );
-
 	sv_max_queries_sec_global.Init("sv_max_queries_sec_global", false);
 	sv_max_queries_sec_global.SetValue( 99999999 ); // sick number
 
@@ -301,7 +299,7 @@ void NetFilter_Load()
 
 void NetFilter_Unload()
 {
-	oobPacketQueue.Purge();
+	oobPacketQueue.clear();
 
 	g_pVCR->Hook_recvfrom = vcr_recvfrom;
 }
