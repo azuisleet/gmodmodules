@@ -35,7 +35,7 @@ bool ValidateKPacket( byte *buffer, int length, in_addr from, char **out_name, c
 	int32 authprotover = buf.ReadLong();
 	int32 challenge = buf.ReadLong();
 
-	if ( protover != 15 ||
+	if ( protover != 16 ||
 			authprotover != 3 )
 	{
 		// 15 is current engine protocol
