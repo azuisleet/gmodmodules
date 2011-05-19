@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;"
+				AdditionalIncludeDirectories="&quot;G:\dev\C++\gmodmodules\modules\public\tier0&quot;;&quot;G:\dev\C++\gmodmodules\modules\public\tier1&quot;;&quot;G:\dev\C++\gmodmodules\modules\public&quot;;&quot;G:\dev\C++\gmodmodules\modules\public\steam&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GMSV_gatekeeper_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -139,7 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="tier0.lib tier1.lib tier2.lib tier3.lib vstdlib.lib wsock32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="D:\hl2sdk-ob-valve\lib\public"
+				AdditionalLibraryDirectories="&quot;G:\dev\C++\gmodmodules\modules\lib\public&quot;"
 				IgnoreDefaultLibraryNames="msvcrt.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -180,6 +180,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\src\csteamid.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\main.cpp"
 				>
 			</File>
@@ -195,6 +199,14 @@
 			>
 			<File
 				RelativePath=".\src\sigscan.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tmpclient.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tmpserver.h"
 				>
 			</File>
 			<File
@@ -925,6 +937,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="sourcemod"
+				>
+				<File
+					RelativePath=".\src\sourcemod\memutils.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\sourcemod\sh_vector.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\sourcemod\sm_symtable.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -932,10 +960,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\steam_api.lib"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
