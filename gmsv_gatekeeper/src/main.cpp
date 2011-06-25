@@ -47,19 +47,66 @@ void VFUNC newConnectClient(CBaseServer* srv,
 {
 	clientChallenge = clientchal;
 
-	if ( netProt == 15 || netProt == 16 )
+
+	if ( netProt == 15 )
 	{
+
 		uint32 headerLen = *((uint32*)cert);
 
 		if ( headerLen <= 20 )
 			rawSteamID = *(uint64*)(cert + 4 + headerLen + 12);
 		else
 			rawSteamID = 0;
+
+	}
+	else if ( netProt == 16 )
+	{
+		uint8 *certPtr = (uint8 *)cert;
+
+		// skip the prepended steamid, we want the authticket one
+		certPtr += 8;
+
+		// read len
+		uint32 gcTokenLen = *((uint32 *)certPtr);
+		certPtr += 4;
+
+
+		if ( gcTokenLen <= 20 )
+		{
+			// skip the entire gc token
+			certPtr += gcTokenLen;
+
+			// read len
+			uint32 sessionHeaderLen = *((uint32 *)certPtr);
+			certPtr += 4;
+
+			if ( sessionHeaderLen <= 24 )
+			{
+				certPtr += sessionHeaderLen;
+
+				// skip ticket container length, appticket length, and version
+				certPtr += ( 4 + 4 + 4 );
+
+				rawSteamID = *((uint64 *)certPtr);
+			}
+			else
+			{
+				rawSteamID = 0;
+			}
+		}
+		else
+		{
+			rawSteamID = 0;
+		}
 	}
 	else if ( netProt == 14 )
-		rawSteamID = *(uint64*)(cert + 16);
+	{
+		rawSteamID = *(uint64*)( cert + 16 );
+	}
 	else
+	{
 		rawSteamID = 0;
+	}
 
 	return origConnectClient(srv, netinfo, netProt, chal, clientchal, authProt, user, pass, cert, certLen);
 }
