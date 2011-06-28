@@ -47,8 +47,7 @@ void VFUNC newConnectClient(CBaseServer* srv,
 {
 	clientChallenge = clientchal;
 
-
-	if ( netProt == 15 )
+	if ( netProt == 15 || netProt == 16 )
 	{
 
 		uint32 headerLen = *((uint32*)cert);
@@ -59,7 +58,7 @@ void VFUNC newConnectClient(CBaseServer* srv,
 			rawSteamID = 0;
 
 	}
-	else if ( netProt == 16 )
+	else if ( netProt == 17 )
 	{
 		uint8 *certPtr = (uint8 *)cert;
 
