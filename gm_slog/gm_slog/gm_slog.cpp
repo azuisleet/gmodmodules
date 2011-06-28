@@ -4,11 +4,9 @@
 
 #include "interface.h"
 #include "eiface.h"
-#include "iclient.h"
-#include "igameevents.h"
+#include "tmpclient.h"
 
-IVEngineServer	*engine = NULL;
-IGameEventManager2 *gameeventmanager = NULL;
+IVEngineServer *engine = NULL;
 
 #include <windows.h>
 #include <detours.h>
@@ -16,20 +14,6 @@ IGameEventManager2 *gameeventmanager = NULL;
 #include "tier1.h"
 
 ILuaInterface *globalLua;
-
-DEFVFUNC_(origFireEvent, bool, (IGameEventManager2 *gem, IGameEvent *event, bool bDontBroadcast));
-bool VFUNC newFireEvent(IGameEventManager2 *gem, IGameEvent *event, bool bDontBroadcast = false)
-{
-	if(strcmp(event->GetName(), "player_disconnect") == 0)
-	{
-		const char *msg = event->GetString("reason");
-
-		if(strlen(msg) > 128 || strlen(msg) <= 0)
-			event->SetString("reason", "Player dropped from server.");
-	}
-
-	return origFireEvent(gem, event, bDontBroadcast);
-}
 
 // virtual bool	ExecuteStringCommand( const char *s ) = 0;
 class CDetour
@@ -68,9 +52,9 @@ bool CDetour::ExecuteStringCommand(const char *s)
 	return (this->*ExecuteStringTrampoline)(s);
 }
 
-#define RECVCMD "\x81\xEC\x08\x05\x00\x00\x56\x8B\xB4\x24\x10\x05\x00\x00"
-#define RECVCMDMASK "xxxxxxxxxxxxxx"
-#define RECVCMDLEN 14
+#define RECVCMD "\x8B\x44\x24\x04\x85\xC0\x56\x8B\xF1\x74"
+#define RECVCMDMASK "xxxxxxxxxx"
+#define RECVCMDLEN 10
 
 CSigScan RecvCmd_Sig;
 
@@ -109,19 +93,23 @@ LUA_FUNCTION(AppendLog)
 
 int Start(lua_State *L)
 {
-	CreateDirectoryA("garrysmod/commandlogs", NULL);
-
 	ILuaInterface *gLua = Lua();
 
 	CreateInterfaceFn interfaceFactory = Sys_GetFactory( "engine.dll" );
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
-	gameeventmanager = (IGameEventManager2 *)interfaceFactory(INTERFACEVERSION_GAMEEVENTSMANAGER2, NULL);
 
 	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 
 	bool scan = CSigScan::GetDllMemInfo();
 
 	RecvCmd_Sig.Init((unsigned char *)RECVCMD, RECVCMDMASK, RECVCMDLEN);
+
+	if (!RecvCmd_Sig.sig_addr)
+	{
+		gLua->Error("[gm_slog] CBaseClient::ExecuteStringCommand not found");
+		return 0;
+	}
+
 	CDetour::ExecuteStringTrampoline = *(execstringcmd_t)&RecvCmd_Sig.sig_addr;
 
 	DetourTransactionBegin();
@@ -132,18 +120,16 @@ int Start(lua_State *L)
 
 	DetourTransactionCommit();
 
-	HOOKVFUNC(gameeventmanager, 7, origFireEvent, newFireEvent);
-
 	gLua->SetGlobal("AppendLog", AppendLog);
 	globalLua = gLua;
+
+	CreateDirectoryA("garrysmod/commandlogs", NULL);
 
 	return 0;
 }
 
 int Close(lua_State *L)
 {
-	UNHOOKVFUNC(gameeventmanager, 7, origFireEvent);
-
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 

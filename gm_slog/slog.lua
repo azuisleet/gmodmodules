@@ -103,7 +103,7 @@ function Cmd_RecvCommand(Name, Buffer)
 		end
 	end
 	
-	local log = string.format("[%s] %s (%s) Ran: %s\n", os.date("%c"), name, steamid, clean)
+	local log = string.format("[%s] %s (%s) Ran: %s\r\n", os.date("%c"), name, steamid, clean)
 	AppendLog(string.Replace(steamid, ":", "_"), log)
 
 	if blocked then
