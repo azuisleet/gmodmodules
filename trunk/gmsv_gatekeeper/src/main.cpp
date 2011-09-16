@@ -21,11 +21,15 @@
 
 #include "vfnhook.h"
 
+#include <tier1/tier1.h>
+#include <tier1/convar.h>
+
 #include <interface.h>
 #include <netadr.h>
 #include <inetmsghandler.h>
 #include <inetchannel.h>
 #include <steamclientpublic.h>
+#include <vstdlib/cvar.h>
 
 #include "tmpserver.h"
 #include "tmpclient.h"
@@ -33,6 +37,11 @@
 #include "common/GMLuaModule.h"
 
 GMOD_MODULE(Load, Unload);
+
+
+static ConVar gk_force_protocol_enable( "gk_force_protocol_enable", "0", FCVAR_NONE, "Enable or disable gatekeeper handling of a specific network protocol." );
+static ConVar gk_force_protocol( "gk_force_protocol", "17", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
+
 
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
@@ -47,6 +56,20 @@ void VFUNC newConnectClient(CBaseServer* srv,
 {
 	clientChallenge = clientchal;
 
+	gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n",
+		netProt, authProt
+	);
+
+	int origNetProt = netProt;
+
+	if ( gk_force_protocol_enable.GetBool() )
+	{
+		// force a specific auth pathway
+		netProt = gk_force_protocol.GetInt();
+
+		gLua->Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
+	}
+
 	if ( netProt == 15 || netProt == 16 )
 	{
 
@@ -58,45 +81,10 @@ void VFUNC newConnectClient(CBaseServer* srv,
 			rawSteamID = 0;
 
 	}
-	else if ( netProt == 17 )
+	else if ( netProt == 17 || netProt == 18 )
 	{
-		uint8 *certPtr = (uint8 *)cert;
-
-		// skip the prepended steamid, we want the authticket one
-		certPtr += 8;
-
-		// read len
-		uint32 gcTokenLen = *((uint32 *)certPtr);
-		certPtr += 4;
-
-
-		if ( gcTokenLen <= 20 )
-		{
-			// skip the entire gc token
-			certPtr += gcTokenLen;
-
-			// read len
-			uint32 sessionHeaderLen = *((uint32 *)certPtr);
-			certPtr += 4;
-
-			if ( sessionHeaderLen <= 24 )
-			{
-				certPtr += sessionHeaderLen;
-
-				// skip ticket container length, appticket length, and version
-				certPtr += ( 4 + 4 + 4 );
-
-				rawSteamID = *((uint64 *)certPtr);
-			}
-			else
-			{
-				rawSteamID = 0;
-			}
-		}
-		else
-		{
-			rawSteamID = 0;
-		}
+		// steamid is always at the beginning, and is reliable
+		rawSteamID = *(uint64 *)cert;
 	}
 	else if ( netProt == 14 )
 	{
@@ -107,7 +95,9 @@ void VFUNC newConnectClient(CBaseServer* srv,
 		rawSteamID = 0;
 	}
 
-	return origConnectClient(srv, netinfo, netProt, chal, clientchal, authProt, user, pass, cert, certLen);
+	gLua->Msg( "[GateKeeper] SteamID: %llu\n", rawSteamID );
+
+	return origConnectClient(srv, netinfo, origNetProt, chal, clientchal, authProt, user, pass, cert, certLen);
 }
 
 DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
@@ -176,6 +166,26 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 		gLua->ErrorNoHalt("PlayerPasswordAuth hook must return a boolean, string, or table value!\n");
 
 	return origCheckPassword(srv, netinfo, pass, user);
+}
+
+LUA_FUNCTION( ForceProtocol )
+{
+	if ( gLua->GetType( 1 ) == GLua::TYPE_NIL )
+	{
+		gk_force_protocol_enable.SetValue( false );
+		gk_force_protocol.Revert();
+
+		return 0;
+	}
+
+	gLua->CheckType( 1, GLua::TYPE_NUMBER );
+
+	int forceProt = gLua->GetNumber( 1 );
+
+	gk_force_protocol_enable.SetValue( true );
+	gk_force_protocol.SetValue( forceProt );
+
+	return 0;
 }
 
 
@@ -305,6 +315,7 @@ LUA_FUNCTION(GetNumClients)
 
 int Load(lua_State* L)
 {
+
 	gLua = Lua();
 
 
@@ -370,15 +381,26 @@ int Load(lua_State* L)
 		gatekeeper->SetMember("GetNumClients", GetNumClients);
 		gatekeeper->SetMember("DropAllClients", DropAllPlayers);
 		gatekeeper->SetMember("GetUserByAddress", GetUserByAddress);
+		gatekeeper->SetMember( "ForceProtocol", ForceProtocol );
 
 		gLua->SetGlobal("gatekeeper", gatekeeper);
 	gatekeeper->UnReference();
+
+	CreateInterfaceFn tier1Factory = VStdLib_GetICVarFactory();
+
+	ConnectTier1Libraries( &tier1Factory, 1 );
+	g_pCVar->Connect( tier1Factory );
+	ConVar_Register();
 
 	return 0;
 }
 
 int Unload(lua_State* L)
 {
+	ConVar_Unregister();
+	g_pCVar->Disconnect();
+	DisconnectTier1Libraries();
+
 	if ( pServer )
 	{
 		UNHOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword);
