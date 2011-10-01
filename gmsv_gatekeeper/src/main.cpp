@@ -3,13 +3,15 @@
 
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
+	#define ENGINE_LIB "engine.dll"
 
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 
 	#include "sigscan.h"
-#else
+#else if defined _LINUX
 	#define VTABLE_OFFSET 1
+	#define ENGINE_LIB "engine.so"
 
 	#include <dlfcn.h>
 	#include <sys/mman.h>
@@ -36,29 +38,23 @@
 
 #include "common/GMLuaModule.h"
 
-GMOD_MODULE(Load, Unload);
-
+GMOD_MODULE( Load, Unload );
 
 static ConVar gk_force_protocol_enable( "gk_force_protocol_enable", "0", FCVAR_NONE, "Enable or disable gatekeeper handling of a specific network protocol." );
 static ConVar gk_force_protocol( "gk_force_protocol", "17", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
 
+static uint64 rawSteamID = 0;
+static int clientChallenge = 0;
 
 CBaseServer* pServer = NULL;
 ILuaInterface* gLua = NULL;
 
-static uint64 rawSteamID = 0;
-static int clientChallenge = 0;
-
-DEFVFUNC_(origConnectClient, void, (CBaseServer* srv,
-		netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char* user, const char *pass, const char* cert, int certLen));
-void VFUNC newConnectClient(CBaseServer* srv,
-		netadr_t &netinfo, int netProt, int chal, int clientchal, int authProt, const char* user, const char *pass, const char* cert, int certLen)
+DEFVFUNC_( origConnectClient, void, ( CBaseServer *srv, netadr_t &netinfo, int netProt, int chal, int authProt, int challenge, const char *user, const char *pass, const char *cert, int certLen ) );
+void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, int chal, int clientchal, int authProt, const char *user, const char *pass, const char *cert, int certLen )
 {
 	clientChallenge = clientchal;
 
-	gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n",
-		netProt, authProt
-	);
+	gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n", netProt, authProt );
 
 	int origNetProt = netProt;
 
@@ -95,45 +91,65 @@ void VFUNC newConnectClient(CBaseServer* srv,
 		rawSteamID = 0;
 	}
 
-	gLua->Msg( "[GateKeeper] SteamID: %llu\n", rawSteamID );
+	gLua->Msg( "Gatekeeper: SteamID: %llu\n", rawSteamID );
 
-	return origConnectClient(srv, netinfo, origNetProt, chal, clientchal, authProt, user, pass, cert, certLen);
+	return origConnectClient( srv, netinfo, origNetProt, chal, clientchal, authProt, user, pass, cert, certLen );
 }
 
-DEFVFUNC_(origCheckPassword, bool, (CBaseServer* srv, netadr_s& adr, char const* pass, char const* user));
-bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pass, const char* user)
+DEFVFUNC_( origCheckPassword, bool, ( CBaseServer *srv, netadr_s &adr, const char *pass, const char *user ) );
+bool VFUNC newCheckPassword( CBaseServer *srv, netadr_t &netinfo, const char *pass, const char *user )
 {
-	const char* steamid = "STEAM_ID_UNKNOWN";
-	CSteamID steam(rawSteamID);
+	const char *steamid = "STEAM_ID_UNKNOWN";
+	
+	CSteamID steam( rawSteamID );
 
-	// This should never be NULL, but if it is it means it was unable
-	// to find the call to CBaseServer::ConnectClient on the stack.
 	if ( steam.BIndividualAccount() )
 		steamid = steam.Render();
+	
+	ILuaObject *hookTable = gLua->GetGlobal( "hook" );
+	ILuaObject *hookCallFunc = hookTable->GetMember( "Call" );
+	
+	// hook.Call
+	gLua->Push( hookCallFunc );
+	// hook name
+	gLua->Push( "PlayerPasswordAuth" );
+	// gamemode
+	gLua->PushNil();
+	// hook arguments
+	gLua->Push( user );
+	gLua->Push( pass );
+	gLua->Push( steamid );
+	gLua->Push( netinfo.ToString() );
+	// call hook
+	gLua->Call( 6, 1 );
+	// cleanup
+	hookTable->UnReference();
+	hookCallFunc->UnReference();
 
-	gLua->Push(gLua->GetGlobal("hook")->GetMember("Call"));
-		gLua->Push("PlayerPasswordAuth");
-		gLua->PushNil(); // Gamemode (Unnecessary, always nil)
-		gLua->Push(user);
-		gLua->Push(pass);
-		gLua->Push(steamid);
-		gLua->Push(netinfo.ToString());
-	gLua->Call(6, 1);
-
-	ILuaObject* ret = gLua->GetReturn(0);
+	ILuaObject *ret = gLua->GetReturn(0);
 
 	if ( ret->GetType() == GLua::TYPE_BOOL )
 	{
-		return ret->GetBool();
+		bool b = ret->GetBool();
+		
+		ret->UnReference();
+
+		return b;
 	}
 	else if ( ret->GetType() == GLua::TYPE_STRING )
 	{
 		srv->RejectConnection( netinfo, clientChallenge, ret->GetString() );
+		
+		ret->UnReference();
+
 		return false;
 	}
 	else if ( ret->GetType() == GLua::TYPE_TABLE )
 	{
-		ILuaObject* allow = ret->GetMember(1);
+		ILuaObject *allow = ret->GetMember( 1 );
+		ILuaObject *reason = ret->GetMember( 2 );
+		
+		ret->UnReference();
 
 		if ( allow && allow->GetType() == GLua::TYPE_BOOL )
 		{
@@ -143,8 +159,6 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 			}
 			else
 			{				
-				ILuaObject* reason = ret->GetMember(2);
-
 				if ( reason != NULL )
 				{
 					if ( reason->GetType() == GLua::TYPE_STRING )
@@ -153,7 +167,7 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 					}
 					else if ( !reason->isNil() )
 					{
-						gLua->ErrorNoHalt("Second return value of PlayerPasswordAuth must be nil or a string!\n");
+						gLua->ErrorNoHalt( "Second return value of PlayerPasswordAuth must be nil or a string!\n" );
 					}
 				}
 
@@ -161,11 +175,15 @@ bool VFUNC newCheckPassword(CBaseServer* srv, netadr_t& netinfo, const char* pas
 			}
 		}
 	}
+	else
+	{
+		if ( !ret->isNil() )
+			gLua->ErrorNoHalt( "PlayerPasswordAuth hook must return a boolean, string, or table value!\n" );
+		
+		ret->UnReference();
+	}
 
-	if ( !ret->isNil() )
-		gLua->ErrorNoHalt("PlayerPasswordAuth hook must return a boolean, string, or table value!\n");
-
-	return origCheckPassword(srv, netinfo, pass, user);
+	return origCheckPassword( srv, netinfo, pass, user );
 }
 
 LUA_FUNCTION( ForceProtocol )
@@ -189,84 +207,80 @@ LUA_FUNCTION( ForceProtocol )
 }
 
 
-LUA_FUNCTION(GetUserByAddress)
+LUA_FUNCTION( GetUserByAddress )
 {
-	if ( !pServer )
-		gLua->Error("Gatekeeper: pServer is NULL!");
-
-	gLua->CheckType(1, GLua::TYPE_STRING);
-	const char *addr = gLua->GetString(1);
-
-	for (int i=0; i < pServer->GetClientCount(); i++)
-	{
-		IClient* client = pServer->GetClient(i);
-		if(client->IsConnected() && strcmp(addr, client->GetNetChannel()->GetRemoteAddress().ToString()) == 0)
-		{	
-			gLua->Push((float) client->GetUserID());
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-
-LUA_FUNCTION(DropAllPlayers)
-{
-	if ( !pServer )
-		gLua->Error("Gatekeeper: pServer is NULL!");
-
-	gLua->CheckType(1, GLua::TYPE_STRING);
-
-	for (int i=0; i < pServer->GetClientCount(); i++)
-	{
-		IClient* client = pServer->GetClient(i);
-
-		if(client->IsConnected())
-			client->Disconnect(gLua->GetString(1));
-	}
-
-	return 0;
-}
-
-LUA_FUNCTION(DropPlayer)
-{
-	if ( !pServer )
-		gLua->Error("Gatekeeper: pServer is NULL!");
-
-	gLua->CheckType(1, GLua::TYPE_NUMBER);
-	gLua->CheckType(2, GLua::TYPE_STRING);
-
-	int DropID = gLua->GetNumber(1);
-
-	for (int i=0; i < pServer->GetClientCount(); i++)
-	{
-		IClient* client = pServer->GetClient(i);
+	gLua->CheckType( 1, GLua::TYPE_STRING );
 	
-		if ( client->GetUserID() == DropID )
-		{
-			client->Disconnect(gLua->GetString(2));
-			gLua->Push(true);
+	const char *pszAddress = gLua->GetString( 1 );
+
+	for (int i=0; i < pServer->GetClientCount(); i++)
+	{
+		IClient *client = pServer->GetClient( i );
+
+		if( client->IsConnected() && strcmp( pszAddress, client->GetNetChannel()->GetRemoteAddress().ToString() ) == 0 )
+		{	
+			gLua->Push( (float)client->GetUserID() );
+	
 			return 1;
 		}
 	}
 
-	gLua->Push(false);
+	return 0;
+}
+
+
+LUA_FUNCTION( DropAllPlayers )
+{
+	gLua->CheckType( 1, GLua::TYPE_STRING );
+
+	const char *pszReason = gLua->GetString( 1 );
+
+	for (int i=0; i < pServer->GetClientCount(); i++)
+	{
+		IClient *client = pServer->GetClient( i );
+
+		if( client->IsConnected() )
+			client->Disconnect( pszReason );
+	}
+
+	return 0;
+}
+
+LUA_FUNCTION( DropPlayer )
+{
+	gLua->CheckType( 1, GLua::TYPE_NUMBER );
+	gLua->CheckType( 2, GLua::TYPE_STRING );
+
+	int iDropID = gLua->GetNumber( 1 );
+
+	for (int i=0; i < pServer->GetClientCount(); i++)
+	{
+		IClient *client = pServer->GetClient(i);
+	
+		if ( client->GetUserID() == iDropID )
+		{
+			client->Disconnect( gLua->GetString( 2 ) );
+			
+			gLua->Push( true );
+
+			return 1;
+		}
+	}
+
+	gLua->Push( false );
+
 	return 1;
 }
 
-LUA_FUNCTION(GetNumClients)
+LUA_FUNCTION( GetNumClients )
 {
-	if ( !pServer )
-		gLua->Error("Gatekeeper: pServer is NULL!");
-
 	int spawning = 0;
 	int active = 0;
 	int total = 0;
 
 	for (int i=0; i < pServer->GetClientCount(); i++)
 	{
-		IClient* client = pServer->GetClient(i);
+		IClient *client = pServer->GetClient( i );
 		
 		if ( client->IsConnected() )
 		{
@@ -279,111 +293,70 @@ LUA_FUNCTION(GetNumClients)
 		}
 	}
 
+	// create table
 	ILuaObject* ret = gLua->GetNewTable();
-		ret->SetMember("active", (float) active);
-		ret->SetMember("spawning", (float) spawning);
-		ret->SetMember("total", (float) total);
-	gLua->Push(ret);
-
+	// set members
+	ret->SetMember( "active", (float)active );
+	ret->SetMember( "spawning", (float)spawning );
+	ret->SetMember( "total", (float)total );
+	// push to stack
+	gLua->Push( ret );
+	// cleanup
 	ret->UnReference();
 
 	return 1;
 }
 
-#ifndef WIN32
-	unsigned char runFrameOrig[10];
-	unsigned char* runFrame;
+int Load( lua_State *L )
+{
+	gLua = Lua();
 
-	void tempRunFrame(CBaseServer* srv)
+#ifdef WIN32
+	CSigScan::sigscan_dllfunc = Sys_GetFactory( ENGINE_LIB );
+	
+	if ( CSigScan::GetDllMemInfo() )
 	{
-		// Restore member function back to how it should be
-		memcpy(runFrame, runFrameOrig, sizeof(runFrameOrig));
-		ReProtect( runFrame );
+		CSigScan sigBaseServer;
+		sigBaseServer.Init( (unsigned char *)
+			"\x00\x00\x00\x00\xE8\x2C\xFA\xFF\xFF\x5E"
+			"\xC3\x8B\x0D\x00\x00\x00\x00\x51\xB9",
+			"????xxxxxxxxx????xx", 19 );
 
-		// All that trouble for this pointer.
-		pServer = srv;
- 
-		// Apply the hooks now that we have the pointer.
-		HOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
-		HOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient);
+		if ( sigBaseServer.is_set )
+			pServer = *(CBaseServer **)sigBaseServer.sig_addr;
+	}
+#else
+	void *hEngine = dlopen( ENGINE_LIB, RTLD_LAZY );
 
-		// Now that we're done, call the original.
-		// Now featuring ugly pointer voodoo.
-		((void (*)(CBaseServer*))(runFrame))(srv);
+	if ( hEngine )
+	{
+		pServer = (CBaseServer *)ResolveSymbol( hEngine, "sv" );
+
+		dlclose( hEngine );
 	}
 #endif
 
-int Load(lua_State* L)
-{
+	if ( !pServer )
+	{
+		gLua->Error( "Gatekeeper: failed to initialize (pServer is NULL)" );
+		
+		return 0;
+	}
 
-	gLua = Lua();
+	HOOKVFUNC( pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword );
+	HOOKVFUNC( pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient );
 
-
-#ifdef WIN32
-	CSigScan::sigscan_dllfunc = Sys_GetFactory("engine.dll");
-	
-	if ( !CSigScan::GetDllMemInfo() )
-		gLua->Error("CSigScan::GetDllMemInfo failed!");
-
-	CSigScan sigBaseServer;
-	sigBaseServer.Init((unsigned char *)
-		"\x00\x00\x00\x00\xE8\x2C\xFA\xFF\xFF\x5E"
-		"\xC3\x8B\x0D\x00\x00\x00\x00\x51\xB9",
-		"????xxxxxxxxx????xx", 10);
-
-	if ( !sigBaseServer.is_set )
-		gLua->Error("CBaseServer signature failed!");
-
-	pServer = *(CBaseServer**) sigBaseServer.sig_addr;
-
-	HOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword, newCheckPassword);
-	HOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient, newConnectClient);
-#else
-	// So, linux. Here we are. There's a right way and a wrong way to do this.
-	// This is the wrong way. (It still works).
-	// The problem we have is that while acquiring a pointer to CBaseServer* is
-	// relatively easy on windows, because of the code that gcc tends to generate
-	// it's very hard with linux. So, rather than acquiring a pointer to CBaseServer*,
-	// I've elected to detour a member function, grab the 'this' pointer from it, and
-	// then restore the function back to normal and continue operation just as it would
-	// with the windows binaries.
-
-	void *hEngine = dlopen("engine.so", RTLD_NOW);
-	
-	if ( !hEngine )
-		gLua->Error("Gatekeeper: dlopen() failed!");
-
-	runFrame = ResolveSymbol(hEngine, "_ZN11CBaseServer8RunFrameEv");
-
-	dlclose(hEngine);
-
-	if ( !runFrame )
-		gLua->Error("Gatekeeper: CBaseServer::RunFrame signature failed!");
-
-	// The address needs to be aligned to a memory page. This is ugly. Oh well.
-	if ( DeProtect( runFrame ) )
-		gLua->Error("Gatekeeper: Couldn't mprotect CBaseServer::RunFrame");
-
-	// Back up the original bytes so we can restore them later
-	memcpy(runFrameOrig, runFrame, sizeof(runFrameOrig));
-
-	// Manual detour! (ugh)
-	// mov eax, tempRunFrame;
-	// jmp eax;
-	runFrame[0] = 0xB8;
-	*(unsigned char**)(runFrame + 1) = (unsigned char*) tempRunFrame;
-	runFrame[5] = 0xFF;
-	runFrame[6] = 0xE0;
-#endif
-	
-	ILuaObject* gatekeeper = gLua->GetNewTable();
-		gatekeeper->SetMember("Drop", DropPlayer);
-		gatekeeper->SetMember("GetNumClients", GetNumClients);
-		gatekeeper->SetMember("DropAllClients", DropAllPlayers);
-		gatekeeper->SetMember("GetUserByAddress", GetUserByAddress);
-		gatekeeper->SetMember( "ForceProtocol", ForceProtocol );
-
-		gLua->SetGlobal("gatekeeper", gatekeeper);
+	// create table
+	ILuaObject *gatekeeper = gLua->GetNewTable();
+	// set members
+	gatekeeper->SetMember( "Drop", DropPlayer );
+	gatekeeper->SetMember( "GetNumClients", GetNumClients );
+	gatekeeper->SetMember( "DropAllClients", DropAllPlayers );
+	gatekeeper->SetMember( "GetUserByAddress", GetUserByAddress );
+	gatekeeper->SetMember( "ForceProtocol", ForceProtocol );
+	// register as global
+	gLua->SetGlobal( "gatekeeper", gatekeeper );
+	// cleanup
 	gatekeeper->UnReference();
 
 	CreateInterfaceFn tier1Factory = VStdLib_GetICVarFactory();
@@ -395,15 +368,15 @@ int Load(lua_State* L)
 	return 0;
 }
 
-int Unload(lua_State* L)
+int Unload( lua_State *L )
 {
+	if ( !pServer )
+		return 0;
+
 	ConVar_Unregister();
 
-	if ( pServer )
-	{
-		UNHOOKVFUNC(pServer, (58 + VTABLE_OFFSET), origCheckPassword);
-		UNHOOKVFUNC(pServer, (49 + VTABLE_OFFSET), origConnectClient);
-	}
+	UNHOOKVFUNC( pServer, (58 + VTABLE_OFFSET), origCheckPassword );
+	UNHOOKVFUNC( pServer, (49 + VTABLE_OFFSET), origConnectClient );
 
 	return 0;
 }
