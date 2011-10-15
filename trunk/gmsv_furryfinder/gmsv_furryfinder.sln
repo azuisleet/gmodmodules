@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmsv_furryfinder", "gmsv_furryfinder\gmsv_furryfinder.vcproj", "{307BF081-4972-4C8C-B777-9D4FD2570717}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{307BF081-4972-4C8C-B777-9D4FD2570717}.Debug|Win32.ActiveCfg = Debug|Win32
+		{307BF081-4972-4C8C-B777-9D4FD2570717}.Debug|Win32.Build.0 = Debug|Win32
+		{307BF081-4972-4C8C-B777-9D4FD2570717}.Release|Win32.ActiveCfg = Release|Win32
+		{307BF081-4972-4C8C-B777-9D4FD2570717}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
