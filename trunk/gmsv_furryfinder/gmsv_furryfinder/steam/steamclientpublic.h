@@ -586,7 +586,7 @@ public:
 		int iAuthID = 0;
 
 		char szAuthID[ 64 ];
-		strcpy_s( szAuthID, 63, pchSteamID );
+		strncpy( szAuthID, pchSteamID, 63 );
 
 		char *szTmp = strtok( szAuthID, ":" );
 		while( szTmp = strtok( NULL, ":" ) )
