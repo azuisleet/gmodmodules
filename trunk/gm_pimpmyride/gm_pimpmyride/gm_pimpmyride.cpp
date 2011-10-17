@@ -22,12 +22,13 @@ GMOD_MODULE(Start, Close)
 
 IPhysicsSurfaceProps *surfaceprop;
 
-// gEntList
-#define LETSSTEALGENTLIST "\x33\xDB\xEB\x02\xDD\xD8\x68\x00\x00\x00\x00\x56\xB9"
-#define LETSSTEALGENTLISTMASK "xxxxxxx????xx"
-#define LETSSTEALGENTLISTLEN 13
+// gEntList, from Sourcemod gamedata
+#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
+#define LEVELSHUTDOWNMASK "x????x????x????x????x????x"
+#define LEVELSHUTDOWNLEN 26
+#define ENTLISTOFFSET 16
 
-CSigScan LETSSTEALGENTLIST_Sig;
+CSigScan LEVELSHUTDOWN_Sig;
 CGlobalEntityList *gEntList_f;
 
 
@@ -385,19 +386,25 @@ int Start(lua_State *L)
 	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
 	bool scan = CSigScan::GetDllMemInfo();
 
-	// gEntList
-	LETSSTEALGENTLIST_Sig.Init((unsigned char *) LETSSTEALGENTLIST,  LETSSTEALGENTLISTMASK,  LETSSTEALGENTLISTLEN);
-	unsigned char *addr = (unsigned char *)LETSSTEALGENTLIST_Sig.sig_addr;
-	gEntList_f = *((CGlobalEntityList **)(addr +  LETSSTEALGENTLISTLEN));
-	// gEntList
-
 	ILuaInterface *gLua = Lua();
 
-	if(!gEntList_f)
+	/*
+
+gEntList: 1091160e 10f72860
+	*/
+	// gEntList
+	LEVELSHUTDOWN_Sig.Init((unsigned char *) LEVELSHUTDOWN, LEVELSHUTDOWNMASK, LEVELSHUTDOWNLEN);
+	unsigned char *addr = (unsigned char *)LEVELSHUTDOWN_Sig.sig_addr;
+
+	if(addr == NULL)
 	{
 		gLua->Error("NO ENTITY LIST ERROR");
 		return 0;
 	}
+
+	gEntList_f = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
+
+	Msg("gEntList: %x %x\n", addr, gEntList_f);
 
 	ILuaObject *metalist = gLua->GetGlobal("_R");
 	ILuaObject *vmeta = metalist->GetMember("Vehicle");
