@@ -320,7 +320,7 @@ int Load( lua_State *L )
 		sigBaseServer.Init( (unsigned char *)
 			"\x00\x00\x00\x00\xE8\x2C\xFA\xFF\xFF\x5E"
 			"\xC3\x8B\x0D\x00\x00\x00\x00\x51\xB9",
-			"????xxxxxxxxx????xx", 19 );
+			"????x????xxxx????xx", 19 );
 
 		if ( sigBaseServer.is_set )
 			pServer = *(CBaseServer **)sigBaseServer.sig_addr;
