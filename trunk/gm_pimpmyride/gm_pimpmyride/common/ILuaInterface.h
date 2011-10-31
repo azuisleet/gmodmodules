@@ -13,7 +13,13 @@
 #pragma once
 #endif
 
+#ifndef NO_SDK
 #include "tier1/utlvector.h"
+#endif
+
+#ifdef UNICODE
+#undef GetObject
+#endif
 
 // Forward Definitions
 class ILuaObject;
@@ -26,8 +32,10 @@ struct LuaKeyValue
 	ILuaObject* pKey;
 	ILuaObject* pValue;
 };
-typedef CUtlVector<LuaKeyValue> CUtlLuaVector;
 
+#ifndef NO_SDK
+typedef CUtlVector<LuaKeyValue> CUtlLuaVector;
+#endif
 
 typedef void (*VoidFunction) ( void );
 typedef int (*CLuaFunction) (lua_State*);
@@ -280,9 +288,13 @@ class ILuaInterface002 : public ILuaInterface001
 
 		// Gets the members from table on stack
 		// Note: You MUST free the result when you're done using DeleteLuaVector.
+#ifndef NO_SDK
 		virtual CUtlLuaVector* GetAllTableMembers( int iTable ) = 0;
 		virtual void DeleteLuaVector( CUtlLuaVector* pVector ) = 0;
-
+#else
+		virtual void* GetAllTableMembers( int iTable ) = 0;
+		virtual void DeleteLuaVector( void* pVector ) = 0;
+#endif
 		// Simple Lua Msg. Is redirected to the ILuaCallback class, which
 		// will display the text differently depending on which Lua instrance you're using.
 		virtual void Msg( const char* fmt, ... ) = 0;
@@ -320,11 +332,12 @@ class ILuaInterface : public ILuaInterface002
 		virtual double GetDouble( int iPos ) = 0;
 		virtual void PushDouble( double iInt ) = 0;
 		
+		// ScriptEnforcer "private" methods
 };
 
 extern ILuaInterface* g_Lua;
 
-// Friendly Macros (Don't try to use these in modules, instead do Lua()->GetBool(1) etc)
+// Friendly Macros (Don't try to use these in modules, instead do gLua->GetBool(1) etc)
 
 #define Get_Bool( i ) (g_Lua->GetBool( i ))
 #define Get_String( i ) (g_Lua->GetStringOrError( i ))

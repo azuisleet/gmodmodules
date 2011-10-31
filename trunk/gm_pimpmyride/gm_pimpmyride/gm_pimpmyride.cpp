@@ -1,26 +1,12 @@
-#define _RETAIL 1
-#define GAME_DLL 1
+#ifdef _WIN32
+
+#define ENGINE_LIB "engine.dll"
+#define VPHYSICS_LIB "vphysics.dll"
+#define SERVER_LIB "server.dll"
+
 #define WIN32_LEAN_AND_MEAN
-
-//hl2sdk-ob-2e2ec01be7aa off the sourcemod mercurial
-#include <server/cbase.h>
-#include <inetchannel.h>
-
 #include <windows.h>
-#include <detours.h>
-
-#include <hl2/vehicle_jeep.h>
-#include <public/vphysics_interface.h>
-
-#include "gm_pimpmyride.h"
 #include "sigscan.h"
-#include "GMLuaModule.h"
-
-IVEngineServer	*engine = NULL;
-
-GMOD_MODULE(Start, Close)
-
-IPhysicsSurfaceProps *surfaceprop;
 
 // gEntList, from Sourcemod gamedata
 #define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
@@ -29,8 +15,41 @@ IPhysicsSurfaceProps *surfaceprop;
 #define ENTLISTOFFSET 16
 
 CSigScan LEVELSHUTDOWN_Sig;
-CGlobalEntityList *gEntList_f;
 
+#elif defined _LINUX
+
+#define ENGINE_LIB "engine.so"
+#define VPHYSICS_LIB "vphysics.so"
+#define SERVER_LIB "garrysmod/bin/server.so"
+
+#include <dlfcn.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "sourcemod/memutils.h"
+
+#endif
+
+#define _RETAIL 1
+#define GAME_DLL 1
+
+//hl2sdk-ob-2e2ec01be7aa off the sourcemod mercurial
+#include <server/cbase.h>
+#include <inetchannel.h>
+#include <hl2/vehicle_jeep.h>
+#include <public/vphysics_interface.h>
+
+#include "gm_pimpmyride.h"
+
+#include "GMLuaModule.h"
+
+IVEngineServer *engine = NULL;
+
+GMOD_MODULE(Start, Close)
+
+IPhysicsSurfaceProps *surfaceprop;
+
+CGlobalEntityList *gEntList_f;
 
 IChangeInfoAccessor *CBaseEdict::GetChangeAccessor()
 {
@@ -67,18 +86,22 @@ IPhysicsVehicleController *GetLuaVehicle(ILuaInterface *gLua)
 {
 	gLua->CheckType(1, GLua::TYPE_ENTITY);
 
+	Msg( "ent: %p\n", gEntList_f->LookupEntity( *(CBaseHandle*)gLua->GetUserData(1) ) );
+
 	CBaseEntity *entity = gEntList_f->GetBaseEntity( *(CBaseHandle*)gLua->GetUserData(1) );
 	if(!entity)
 	{
-		gLua->Error("NO ENTITY!");
+		gLua->Error("[gm_pimpmyride] NO ENTITY!");
 		return NULL;
 	}
+
+	gLua->Msg( "entity=%p\n", entity );
 
 	IServerVehicle *vehicle = entity->GetServerVehicle();
 
 	if(!vehicle)
 	{
-		gLua->Error("NO VEHICLE!");
+		gLua->Error("[gm_pimpmyride] NO VEHICLE!");
 		return NULL;
 	}
 
@@ -86,7 +109,7 @@ IPhysicsVehicleController *GetLuaVehicle(ILuaInterface *gLua)
 
 	if(!controller)
 	{
-		gLua->Error("NO PHYSICS CONTROLLER!");
+		gLua->Error("[gm_pimpmyride] NO PHYSICS CONTROLLER!");
 		return NULL;
 	}
 
@@ -130,7 +153,7 @@ LUA_FUNCTION(setvehicleparams)
 	bool sane = table->GetMemberBool("_SanityCheckOnlyUseTheResultFromGetVehicleParams", false);
 	if(!sane)
 	{
-		gLua->Error("USE THE RESULT FROM GETVEHICLEPARAMS");
+		gLua->Error("[gm_pimpmyride] USE THE RESULT FROM GETVEHICLEPARAMS");
 		return 0;
 	}
 
@@ -373,9 +396,9 @@ LUA_FUNCTION(SetUcmdButtons)
 
 int Start(lua_State *L)
 {
-	CreateInterfaceFn interfaceFactory = Sys_GetFactory( "engine.dll" );
-	CreateInterfaceFn gameServerFactory = Sys_GetFactory( "server.dll" );
-	CreateInterfaceFn physicsFactory = Sys_GetFactory( "vphysics.dll" );
+	CreateInterfaceFn interfaceFactory = Sys_GetFactory( ENGINE_LIB );
+	CreateInterfaceFn gameServerFactory = Sys_GetFactory( SERVER_LIB );
+	CreateInterfaceFn physicsFactory = Sys_GetFactory( VPHYSICS_LIB );
 
 	surfaceprop = (IPhysicsSurfaceProps*)physicsFactory(VPHYSICS_SURFACEPROPS_INTERFACE_VERSION, NULL);
 
@@ -383,10 +406,11 @@ int Start(lua_State *L)
 
 	//g_pSharedChangeInfo = engine->GetSharedEdictChangeInfo();
 
-	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
-	bool scan = CSigScan::GetDllMemInfo();
-
 	ILuaInterface *gLua = Lua();
+
+#ifdef _WIN32
+	CSigScan::sigscan_dllfunc = gameServerFactory;
+	bool scan = CSigScan::GetDllMemInfo();
 
 	/*
 
@@ -398,13 +422,25 @@ gEntList: 1091160e 10f72860
 
 	if(addr == NULL)
 	{
-		gLua->Error("NO ENTITY LIST ERROR");
+		gLua->Error("[gm_pimpmyride] NO ENTITY LIST ERROR");
 		return 0;
 	}
 
 	gEntList_f = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
 
-	Msg("gEntList: %x %x\n", addr, gEntList_f);
+	Msg("[gm_pimpmyride] LEVELSHUTDOWN_Sig.sig_addr: %x\n", addr);
+#elif defined _LINUX
+	void *hServer = dlopen( SERVER_LIB, RTLD_LAZY );
+
+	if ( hServer )
+	{
+		gEntList_f = (CGlobalEntityList *)ResolveSymbol( hServer, "gEntList" );
+
+		dlclose( hServer );
+	}
+#endif
+
+	Msg("[gm_pimpmyride] gEntList: %x\n", gEntList_f);
 
 	ILuaObject *metalist = gLua->GetGlobal("_R");
 	ILuaObject *vmeta = metalist->GetMember("Vehicle");
