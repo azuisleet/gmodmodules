@@ -86,16 +86,13 @@ IPhysicsVehicleController *GetLuaVehicle(ILuaInterface *gLua)
 {
 	gLua->CheckType(1, GLua::TYPE_ENTITY);
 
-	Msg( "ent: %p\n", gEntList_f->LookupEntity( *(CBaseHandle*)gLua->GetUserData(1) ) );
-
 	CBaseEntity *entity = gEntList_f->GetBaseEntity( *(CBaseHandle*)gLua->GetUserData(1) );
+	
 	if(!entity)
 	{
 		gLua->Error("[gm_pimpmyride] NO ENTITY!");
 		return NULL;
 	}
-
-	gLua->Msg( "entity=%p\n", entity );
 
 	IServerVehicle *vehicle = entity->GetServerVehicle();
 
