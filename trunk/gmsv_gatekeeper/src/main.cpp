@@ -1,5 +1,5 @@
 // GateKeeper V4.2
-// ComWalk, VoiDeD, chrisaster 6/29/10
+// ComWalk, VoiDeD, Chrisaster
 
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
@@ -41,7 +41,7 @@
 GMOD_MODULE( Load, Unload );
 
 static ConVar gk_force_protocol_enable( "gk_force_protocol_enable", "0", FCVAR_NONE, "Enable or disable gatekeeper handling of a specific network protocol." );
-static ConVar gk_force_protocol( "gk_force_protocol", "17", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
+static ConVar gk_force_protocol( "gk_force_protocol", "19", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
 
 static uint64 rawSteamID = 0;
 static int clientChallenge = 0;
@@ -66,29 +66,41 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		gLua->Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
 	}
 
-	if ( netProt == 15 || netProt == 16 )
+	switch ( netProt )
 	{
+		case 14:
+		{
+			rawSteamID = *(uint64*)( cert + 16 );
 
-		uint32 headerLen = *((uint32*)cert);
+			break;
+		}
+		case 15:
+		case 16:
+		{
+			uint32 headerLen = *((uint32*)cert);
 
-		if ( headerLen <= 20 )
-			rawSteamID = *(uint64*)(cert + 4 + headerLen + 12);
-		else
+			if ( headerLen <= 20 )
+				rawSteamID = *(uint64*)(cert + 4 + headerLen + 12);
+			else
+				rawSteamID = 0;
+
+			break;
+		}
+		case 17:
+		case 18:
+		case 19:
+		{
+			// steamid is always at the beginning, and is reliable
+			rawSteamID = *(uint64 *)cert;
+			
+			break;
+		}
+		default:
+		{
 			rawSteamID = 0;
 
-	}
-	else if ( netProt == 17 || netProt == 18 )
-	{
-		// steamid is always at the beginning, and is reliable
-		rawSteamID = *(uint64 *)cert;
-	}
-	else if ( netProt == 14 )
-	{
-		rawSteamID = *(uint64*)( cert + 16 );
-	}
-	else
-	{
-		rawSteamID = 0;
+			break;
+		}
 	}
 
 	gLua->Msg( "Gatekeeper: SteamID: %llu\n", rawSteamID );
