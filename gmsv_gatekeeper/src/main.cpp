@@ -41,7 +41,8 @@
 GMOD_MODULE( Load, Unload );
 
 static ConVar gk_force_protocol_enable( "gk_force_protocol_enable", "0", FCVAR_NONE, "Enable or disable gatekeeper handling of a specific network protocol." );
-static ConVar gk_force_protocol( "gk_force_protocol", "19", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
+static ConVar gk_force_protocol( "gk_force_protocol", "0", FCVAR_NONE, "Force gatekeeper to handle a specific protocol." );
+static ConVar gk_debug( "gk_debug", "0", FCVAR_NONE, "Enables additional debug output." );
 
 static uint64 rawSteamID = 0;
 static int clientChallenge = 0;
@@ -54,7 +55,19 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 {
 	clientChallenge = clientchal;
 
-	gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n", netProt, authProt );
+	bool debugOutputEnabled = gk_debug.GetBool();
+
+	if ( debugOutputEnabled )
+	{
+		// print network and authentication protocol versions
+		gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n", netProt, authProt );
+
+		// print client certificate
+		gLua->Msg( "[GateKeeper] Printing client (%s) certificate..\n", user );
+		for ( int i = 0; i < certLen; i++ )
+			gLua->Msg( "%02X ", (unsigned char)cert[i] );
+		gLua->Msg( "\n" );
+	}
 
 	int origNetProt = netProt;
 
@@ -63,7 +76,8 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		// force a specific auth pathway
 		netProt = gk_force_protocol.GetInt();
 
-		gLua->Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
+		if ( debugOutputEnabled )
+			gLua->Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
 	}
 
 	switch ( netProt )
@@ -89,6 +103,8 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		case 17:
 		case 18:
 		case 19:
+		case 20:
+		case 21:
 		{
 			// steamid is always at the beginning, and is reliable
 			rawSteamID = *(uint64 *)cert;
@@ -97,13 +113,15 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		}
 		default:
 		{
+
 			rawSteamID = 0;
 
 			break;
 		}
 	}
 
-	gLua->Msg( "Gatekeeper: SteamID: %llu\n", rawSteamID );
+	if ( debugOutputEnabled )
+		gLua->Msg( "[GateKeeper] Certificate SteamID: %llu\n", rawSteamID );
 
 	return origConnectClient( srv, netinfo, origNetProt, chal, clientchal, authProt, user, pass, cert, certLen );
 }
