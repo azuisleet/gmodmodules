@@ -12,11 +12,14 @@ IServerGameDLL *gamedll = NULL;
 int umsgStringTableOffset;
 //int tickinterval;
 
-// gEntList
-#define LETSSTEALGENTLIST "\xFF\xD5\x83\xC4\x08\x6A\x00\xB9"
-#define LETSSTEALGENTLISTMASK "xxxxxxxx"
-#define LETSSTEALGENTLISTLEN 8
-CSigScan LETSSTEALGENTLIST_Sig;
+
+// gEntList, from Sourcemod gamedata
+#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
+#define LEVELSHUTDOWNMASK "x????x????x????x????x????x"
+#define LEVELSHUTDOWNLEN 26
+#define ENTLISTOFFSET 16
+
+CSigScan LEVELSHUTDOWN_Sig;
 CBaseEntityList * g_pEntityList;
 
 std::bitset<MAX_EDICTS> sentEnts[MAX_GMOD_PLAYERS];
@@ -373,14 +376,19 @@ int Start(lua_State *L)
 
 	DetourTransactionCommit();
 
-	// gEntList
 	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
 	bool scan = CSigScan::GetDllMemInfo();
 
-	LETSSTEALGENTLIST_Sig.Init((unsigned char *) LETSSTEALGENTLIST,  LETSSTEALGENTLISTMASK,  LETSSTEALGENTLISTLEN);
-	unsigned char *addr = (unsigned char *)LETSSTEALGENTLIST_Sig.sig_addr;
-	g_pEntityList = *((CGlobalEntityList **)(addr +  LETSSTEALGENTLISTLEN));
-	// gEntList
+	LEVELSHUTDOWN_Sig.Init((unsigned char *) LEVELSHUTDOWN, LEVELSHUTDOWNMASK, LEVELSHUTDOWNLEN);
+	unsigned char *addr = (unsigned char *)LEVELSHUTDOWN_Sig.sig_addr;
+
+	if(addr == NULL)
+	{
+		gLua->Error("NO ENTITY LIST ERROR");
+		return 0;
+	}
+
+	g_pEntityList = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
 
 	// umsg pool
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
