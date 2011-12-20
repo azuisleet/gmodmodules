@@ -10,7 +10,7 @@ LUA_FUNCTION( setcharset );
 LUA_FUNCTION( query );
 LUA_FUNCTION( poll );
 
-void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb );
+void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requireSync );
 bool BuildTableFromQuery( ILuaInterface* gLua, Query* query );
 void HandleQueryCallback( ILuaInterface* gLua, Query* query );
 Database* GetMySQL( ILuaInterface* gLua );
@@ -46,13 +46,10 @@ int Close(lua_State *L)
 
 	if ( mysqldb )
 	{
-
 		while ( !mysqldb->WaitForSafeShutdown() )
 		{
-			DispatchCompletedQueries( gLua, mysqldb );
+			DispatchCompletedQueries( gLua, mysqldb, true );
 		}
-		
-		DispatchCompletedQueries( gLua, mysqldb );
 
 		mysqldb->Shutdown();
 
@@ -204,7 +201,7 @@ LUA_FUNCTION( poll )
 	if ( !mysqldb )
 		return 0;
 
-	DispatchCompletedQueries( gLua, mysqldb );
+	DispatchCompletedQueries( gLua, mysqldb, false );
 	return 0;
 }
 
@@ -217,16 +214,19 @@ Database* GetMySQL( ILuaInterface* gLua )
 	return pData;
 }
 
-void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
+void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requireSync )
 {
 	typedef std::deque< Query* > QueryCollection;
 
 	QueryCollection& completed = mysqldb->CompletedQueries();
 	recursive_mutex& mutex = mysqldb->CompletedMutex();
 
-	// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
-	if ( completed.empty() )
-		return;
+	if(!requireSync)
+	{
+		// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
+		if ( completed.empty() )
+			return;
+	}
 
 	{
 		recursive_mutex::scoped_lock lock( mutex );
