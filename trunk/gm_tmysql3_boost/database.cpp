@@ -74,9 +74,15 @@ inline boost::xtime delay(int secs, int msecs=0, int nsecs=0)
 
 bool Database::WaitForSafeShutdown( void )
 {
-	boost::xtime waittime = delay( 0, 50 );
+	bool waitCompletion = m_pThreadPool->wait( delay( 0, 50 ) );
+	bool completedDispatch;
 
-	return m_pThreadPool->wait( waittime );
+	{
+		recursive_mutex::scoped_lock lock( m_CompletedMutex );
+		completedDispatch = m_vecCompleted.empty();
+	}
+	
+	return waitCompletion && completedDispatch;
 }
 
 void Database::Shutdown( void )
@@ -133,7 +139,9 @@ void Database::QueueQuery( const char* query, int callback, int flags, int callb
 void Database::QueueQuery( Query* query )
 {
 	if ( m_pThreadPool != NULL )
+	{
 		m_pThreadPool->schedule( DoQueryTask( this, query ) );
+	}
 }
 
 

@@ -58,7 +58,13 @@ bool Database::Connect( MYSQL* mysql, CUtlString& error )
 
 bool Database::IsSafeToShutdown( void )
 {
-	return m_pThreadPool->GetJobCount() == 0 && m_pThreadPool->NumIdleThreads() == m_pThreadPool->NumThreads();
+	bool completedDispatch;
+	{
+		AUTO_LOCK_FM( m_vecCompleted );
+		completedDispatch = m_vecCompleted.Count() == 0;
+	}
+
+	return completedDispatch && m_pThreadPool->GetJobCount() == 0 && m_pThreadPool->NumIdleThreads() == m_pThreadPool->NumThreads();
 }
 
 void Database::Shutdown( void )
