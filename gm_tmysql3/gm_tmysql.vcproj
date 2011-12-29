@@ -65,9 +65,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libmysql.lib"
+				AdditionalDependencies="mysqlclient.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;E:\mysql-5.1.48-win32\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;C:\mysql-5.5.19-win32\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD"
 				GenerateDebugInformation="true"
 				SubSystem="2"
