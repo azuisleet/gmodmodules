@@ -111,6 +111,8 @@ LUA_FUNCTION( initialize )
 	ILuaObject* database = gLua->GetGlobal( "tmysql" );
 	database->SetMemberUserDataLite( USERDATA_PTR, mysqldb );
 
+	database->UnReference();
+
 	// hook.Add("Think", "TMysqlPoll", tmysql.poll)
 	ILuaObject *hookt = gLua->GetGlobal("hook");
 	ILuaObject *addf = hookt->GetMember("Add");
@@ -119,6 +121,9 @@ LUA_FUNCTION( initialize )
 	gLua->Push("TMysqlPoll");
 	gLua->Push(poll);
 	gLua->Call(3);
+
+	hookt->UnReference();
+	addf->UnReference();
 
 	gLua->Push( true );
 	return 1;
@@ -174,7 +179,7 @@ LUA_FUNCTION( query )
 	const char* query = gLua->GetString( 1 );
 
 	int callbackfunc = -1;
-	if(gLua->GetType(2) == GLua::TYPE_FUNCTION) 
+	if(gLua->GetType(2) == GLua::TYPE_FUNCTION)
 	{
 		callbackfunc = gLua->GetReference(2);
 	}
@@ -186,7 +191,6 @@ LUA_FUNCTION( query )
 	{
 		callbackref = gLua->GetReference(4);
 	}
-
 
 	mysqldb->QueueQuery( query, callbackfunc, flags, callbackref );
 	return 0;
@@ -211,6 +215,9 @@ Database* GetMySQL( ILuaInterface* gLua )
 	if (!mysql) return NULL;
 
 	Database* pData = (Database*)mysql->GetMemberUserDataLite( USERDATA_PTR );
+	gLua->Pop(); // BUG: GetMemberUserDataLite does not balance
+
+	mysql->UnReference();
 	return pData;
 }
 
