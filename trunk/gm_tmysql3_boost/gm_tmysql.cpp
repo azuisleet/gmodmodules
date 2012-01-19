@@ -11,7 +11,7 @@ LUA_FUNCTION( query );
 LUA_FUNCTION( poll );
 
 void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requireSync );
-bool BuildTableFromQuery( ILuaInterface* gLua, Query* query );
+bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* query );
 void HandleQueryCallback( ILuaInterface* gLua, Query* query );
 Database* GetMySQL( ILuaInterface* gLua );
 
@@ -261,13 +261,12 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requ
 
 void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 {
-	if ( !BuildTableFromQuery( gLua, query ) )
-	{
-		gLua->Error("Unable to create table for query callback.");
-	}
+	ILuaObject *resultTable = gLua->GetNewTable();
 
-	ILuaObject *restable = gLua->GetObject();
-	gLua->Pop();
+	if( !PopulateTableFromQuery( gLua, resultTable, query ) )
+	{
+		gLua->Error("Unable to populate result table");
+	}
 
 	gLua->PushReference( query->GetCallback() );
 
@@ -278,7 +277,7 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 		gLua->PushReference( query->GetCallbackRef() );
 	}
 
-	gLua->Push( restable );
+	gLua->Push( resultTable );
 	gLua->Push( query->GetStatus() );
 
 	if ( query->GetStatus() )
@@ -292,22 +291,18 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 
 	gLua->Call(args);
 
-	if( query->GetCallbackRef() >= 0)
+	if( query->GetCallbackRef() >= 0 )
 	{
 		gLua->FreeReference( query->GetCallbackRef() );
 	}
 
 	gLua->FreeReference( query->GetCallback() );
-	restable->UnReference();
+	resultTable->UnReference();
 }
 
-bool BuildTableFromQuery( ILuaInterface* gLua, Query* query )
+bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* query )
 {
 	MYSQL_RES* result = query->GetResult();
-
-	ILuaObject *restable = gLua->GetNewTable();
-	restable->Push();
-	restable->UnReference();
 
 	// no result to push, continue, this isn't fatal
 	if ( result == NULL )
@@ -326,10 +321,14 @@ bool BuildTableFromQuery( ILuaInterface* gLua, Query* query )
 	}
 
 	int rowid = 1;
+	ILuaObject* resultrow = gLua->NewTemporaryObject();
 
 	while ( row != NULL )
 	{
-		ILuaObject* resultrow = gLua->GetNewTable();
+		// black magic warning: we use a temp and assign it so that we avoid consuming all the temp objects and causing horrible disasters
+		gLua->NewTable();
+		resultrow->SetFromStack(-1);
+		gLua->Pop();
 
 		for ( int i = 0; i < field_count; i++ )
 		{
@@ -343,12 +342,8 @@ bool BuildTableFromQuery( ILuaInterface* gLua, Query* query )
 			}
 		}
 
-		restable = gLua->GetObject();
-
-		restable->SetMember( (float)rowid, resultrow );
+		table->SetMember( (float)rowid, resultrow );
 		resultrow->UnReference();
-
-		restable->UnReference();
 
 		row = mysql_fetch_row( result );
 		rowid++;
