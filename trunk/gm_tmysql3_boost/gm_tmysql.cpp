@@ -269,15 +269,18 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 	}
 
 	gLua->PushReference( query->GetCallback() );
+	gLua->FreeReference( query->GetCallback() );
 
 	int args = 3;
 	if( query->GetCallbackRef() >= 0)
 	{
 		args = 4;
 		gLua->PushReference( query->GetCallbackRef() );
+		gLua->FreeReference( query->GetCallbackRef() );
 	}
 
 	gLua->Push( resultTable );
+	resultTable->UnReference();
 	gLua->Push( query->GetStatus() );
 
 	if ( query->GetStatus() )
@@ -290,14 +293,6 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 	}
 
 	gLua->Call(args);
-
-	if( query->GetCallbackRef() >= 0 )
-	{
-		gLua->FreeReference( query->GetCallbackRef() );
-	}
-
-	gLua->FreeReference( query->GetCallback() );
-	resultTable->UnReference();
 }
 
 bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* query )
