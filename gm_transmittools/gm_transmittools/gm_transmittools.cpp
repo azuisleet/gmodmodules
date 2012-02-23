@@ -390,8 +390,35 @@ int Start(lua_State *L)
 
 	g_pEntityList = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
 
-	// umsg pool
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
+
+	// we need to scan for the LuaStrings table..
+	if(table == NULL)
+	{
+		gLua->RunString("gm_transmittools", "", "umsg.PoolString(\"N\")", true, true);
+
+		for(int i = 0; i < networkstringtable->GetNumTables(); i++)
+		{
+			INetworkStringTable *table_iter = networkstringtable->GetTable(i);
+
+			for(int x = 0; x < table_iter->GetNumStrings(); x++)
+			{
+				const char *string_iter = table_iter->GetString(x);
+				if( string_iter != NULL && strlen(string_iter) >= 1 && strcmp(string_iter, "N") == 0 )
+				{
+					table = table_iter;
+					break;
+				}
+			}
+		}
+	}
+
+	if(table == NULL)
+	{
+		gLua->Error("Could not locate LuaStrings stringtable");
+	}
+
+	// umsg pool
 	umsgStringTableOffset = table->AddString(true, "N") << 1 | 1; // what teh hug
 
 	ILuaObject *transmittools = gLua->GetNewTable();
