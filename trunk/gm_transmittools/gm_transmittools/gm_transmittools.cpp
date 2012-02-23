@@ -404,7 +404,7 @@ int Start(lua_State *L)
 			for(int x = 0; x < table_iter->GetNumStrings(); x++)
 			{
 				const char *string_iter = table_iter->GetString(x);
-				if( string_iter != NULL && strlen(string_iter) >= 1 && strcmp(string_iter, "N") == 0 )
+				if( string_iter != NULL && strlen(string_iter) == 1 && strcmp(string_iter, "N") == 0 )
 				{
 					table = table_iter;
 					break;
