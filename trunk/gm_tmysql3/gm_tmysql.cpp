@@ -21,8 +21,8 @@ int Start(lua_State *L)
 
 	ILuaInterface *gLua = Lua();
 
-	gLua->SetGlobal( "QUERY_SUCCESS", (float)QUERY_SUCCESS );
-	gLua->SetGlobal( "QUERY_FAIL", (float)QUERY_FAIL );
+	gLua->SetGlobal( "QUERY_SUCCESS", QUERY_SUCCESS );
+	gLua->SetGlobal( "QUERY_FAIL", QUERY_FAIL );
 
 	gLua->SetGlobal( "QUERY_FLAG_ASSOC", (float)QUERY_FLAG_ASSOC );
 	gLua->SetGlobal( "QUERY_FLAG_LASTID", (float)QUERY_FLAG_LASTID );
@@ -218,12 +218,9 @@ void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requ
 {
 	CUtlVectorMT<CUtlVector<Query*> >& completed = mysqldb->CompletedQueries();
 
-	if(!requireSync)
-	{
-		// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
-		if ( completed.Size() <= 0 )
-			return;
-	}
+	// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
+	if( !requireSync && completed.Size() <= 0 )
+		return;
 
 	{
 		AUTO_LOCK_FM( completed );

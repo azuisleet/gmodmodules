@@ -1,5 +1,5 @@
-#define QUERY_SUCCESS 1
-#define QUERY_FAIL 0
+#define QUERY_SUCCESS true
+#define QUERY_FAIL false
 
 #define QUERY_FLAG_ASSOC 1
 #define QUERY_FLAG_LASTID 2
