@@ -9,7 +9,7 @@
 IVEngineServer *engine = NULL;
 
 #include <windows.h>
-#include <detours.h>
+#include "detours.h"
 #include "vfnhook.h"
 #include "tier1.h"
 
@@ -52,9 +52,9 @@ bool CDetour::ExecuteStringCommand(const char *s)
 	return (this->*ExecuteStringTrampoline)(s);
 }
 
-#define RECVCMD "\x8B\x44\x24\x04\x85\xC0\x56\x8B\xF1\x74"
-#define RECVCMDMASK "xxxxxxxxxx"
-#define RECVCMDLEN 10
+#define RECVCMD "\x55\x8B\xEC\x8B\x45\x08\x85\xC0\x56\x8B\xF1\x74\x22\x80\x38\x00"
+#define RECVCMDMASK "xxxxxxxxxxxx?xxx"
+#define RECVCMDLEN 16
 
 CSigScan RecvCmd_Sig;
 
