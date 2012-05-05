@@ -53,7 +53,7 @@ public:
 	int			GetCallbackRef( void ) { return m_iCallbackRef; }
 
 	void		SetError( const char* error ) { m_strError.Set( error ); }
-	const char* GetError( void ) { return m_strError; }
+	const char* GetError( void ) { return m_strError.Get(); }
 
 	void		SetStatus( bool status ) { m_bStatus = status; }
 	bool		GetStatus( void ) { return m_bStatus; }
