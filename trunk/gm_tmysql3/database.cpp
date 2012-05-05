@@ -137,22 +137,21 @@ void Database::YieldPostCompleted( Query* query )
 
 void Database::DoExecute( Query* query )
 {
-#ifdef USE_THREAD_LOCAL
-	static THREAD_LOCAL MYSQL* pMYSQL;
-#else
-	static CThreadLocalPtr<MYSQL> pMYSQL;
-#endif
+	MYSQL* pMYSQL = pLocalMYSQL;
 
 	if ( pMYSQL == NULL )
 	{
 		AUTO_LOCK_FM( m_vecAvailableConnections );
+		{
+			Assert( m_vecAvailableConnections.Size() > 0 );
 
-		Assert( m_vecAvailableConnections.Size() > 0 );
+			pMYSQL = m_vecAvailableConnections.Head();
+			m_vecAvailableConnections.Remove( 0 );
 
-		pMYSQL = m_vecAvailableConnections.Head();
-		m_vecAvailableConnections.Remove( 0 );
+			pLocalMYSQL = pMYSQL;
 
-		Assert( pMYSQL );
+			Assert( pMYSQL );
+		}
 	}
 
 	const char* strquery = query->GetQuery();
