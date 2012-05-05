@@ -180,7 +180,8 @@ LUA_FUNCTION( query )
 	int flags = gLua->GetInteger(3);
 
 	int callbackref = -1;
-	if(gLua->GetStackTop() == 5)
+	int callbackobj = gLua->GetType(4);
+	if(callbackobj != GLua::TYPE_NIL)
 	{
 		callbackref = gLua->GetReference(4);
 	}
