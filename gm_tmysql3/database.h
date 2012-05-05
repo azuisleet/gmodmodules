@@ -116,7 +116,7 @@ private:
 	IThreadPool*	m_pThreadPool;
 
 	CUtlVectorMT<CUtlVector<Query*> >						m_vecCompleted;
-	CUtlVectorMT<CUtlVectorFixed<MYSQL*, NUM_CON_DEFAULT> >	m_vecAvailableConnections;
+	CUtlVectorMT<CUtlVector<MYSQL*> >						m_vecAvailableConnections;
 	CUtlVector<MYSQL*>										m_vecAllConnections;
 
 	CUtlString		m_strHost;
@@ -124,4 +124,6 @@ private:
 	CUtlString		m_strPass;
 	CUtlString		m_strDB;
 	uint			m_iPort;
+
+	CThreadLocalPtr<MYSQL> pLocalMYSQL;
 };

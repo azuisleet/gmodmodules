@@ -155,7 +155,6 @@ void Database::YieldPostCompleted( Query* query )
 
 void Database::DoExecute( Query* query )
 {
-	static thread_specific_ptr< MYSQL > pLocalMYSQL( NULL );
 	MYSQL* pMYSQL = pLocalMYSQL.get();
 
 	if ( pMYSQL == NULL )
