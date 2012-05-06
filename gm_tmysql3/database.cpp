@@ -137,22 +137,18 @@ void Database::YieldPostCompleted( Query* query )
 
 void Database::DoExecute( Query* query )
 {
-	MYSQL* pMYSQL = pLocalMYSQL;
-
-	if ( pMYSQL == NULL )
+	MYSQL* pMYSQL;
+	
 	{
 		AUTO_LOCK_FM( m_vecAvailableConnections );
-		{
-			Assert( m_vecAvailableConnections.Size() > 0 );
+		Assert( m_vecAvailableConnections.Size() > 0 );
 
-			pMYSQL = m_vecAvailableConnections.Head();
-			m_vecAvailableConnections.Remove( 0 );
+		pMYSQL = m_vecAvailableConnections.Head();
+		m_vecAvailableConnections.Remove( 0 );
 
-			pLocalMYSQL = pMYSQL;
-
-			Assert( pMYSQL );
-		}
+		Assert( pMYSQL );
 	}
+
 
 	const char* strquery = query->GetQuery();
 	size_t len = query->GetQueryLength();
@@ -184,4 +180,9 @@ void Database::DoExecute( Query* query )
 	}
 
 	YieldPostCompleted( query );
+
+	{
+		AUTO_LOCK_FM( m_vecAvailableConnections );
+		m_vecAvailableConnections.AddToTail( pMYSQL );
+	}
 }

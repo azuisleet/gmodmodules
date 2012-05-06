@@ -155,16 +155,13 @@ void Database::YieldPostCompleted( Query* query )
 
 void Database::DoExecute( Query* query )
 {
-	MYSQL* pMYSQL = pLocalMYSQL.get();
+	MYSQL* pMYSQL;
 
-	if ( pMYSQL == NULL )
 	{
 		recursive_mutex::scoped_lock lock( m_AvailableMutex );
 
 		pMYSQL = m_vecAvailableConnections.front();
 		m_vecAvailableConnections.pop_front();
-
-		pLocalMYSQL.reset( pMYSQL );
 	}
 
 	const char* strquery = query->GetQuery().c_str();
@@ -197,6 +194,12 @@ void Database::DoExecute( Query* query )
 	}
 
 	YieldPostCompleted( query );
+
+	{
+		recursive_mutex::scoped_lock lock( m_AvailableMutex );
+
+		m_vecAvailableConnections.push_back( pMYSQL );
+	}
 }
 
 void DoQueryTask::operator() () const

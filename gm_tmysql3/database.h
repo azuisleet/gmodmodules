@@ -124,6 +124,4 @@ private:
 	CUtlString		m_strPass;
 	CUtlString		m_strDB;
 	uint			m_iPort;
-
-	CThreadLocalPtr<MYSQL> pLocalMYSQL;
 };
