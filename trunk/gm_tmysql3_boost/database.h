@@ -148,6 +148,4 @@ private:
 	std::string		m_strPass;
 	std::string		m_strDB;
 	int				m_iPort;
-
-	thread_specific_ptr< MYSQL > pLocalMYSQL;
 };
