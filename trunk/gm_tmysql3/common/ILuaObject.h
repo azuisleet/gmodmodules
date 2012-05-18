@@ -16,6 +16,7 @@
 #include "ILuaInterface.h"
 
 class ILuaObject;
+typedef void unknown_ret;
 
 //////////////////////////////////////////////////////////////////////////
 //	Name: ILuaObject_001
@@ -96,6 +97,8 @@ class ILuaObject : public ILuaObject_001
 		virtual void			SetFloat( float val ) = 0;
 		virtual void			SetString( const char* val ) = 0;
 
+		// GM13: get double
+		virtual double			GetDouble( void ) = 0;
 		// Return members of table
 		virtual CUtlLuaVector*	GetMembers( void ) = 0;
 
@@ -104,4 +107,38 @@ class ILuaObject : public ILuaObject_001
 		virtual void*			GetMemberUserDataLite( const char* strKeyName ) = 0;
 };
 
+// GM13: not documented or tested yet
+class CLuaObject : public ILuaObject
+{
+	public:
+		virtual unknown_ret RequireMember(char  const*,char);
+
+		virtual unknown_ret AddMemberTable(char  const*);
+
+		virtual unknown_ret SetMember_FixKey(char  const*,float);
+		virtual unknown_ret SetMember_FixKey(char  const*,char  const*);
+		virtual unknown_ret SetMember_FixKey(char  const*,ILuaObject *);
+
+		virtual unknown_ret Init(void);
+		virtual unknown_ret SetFromGlobal(char  const*);
+
+		virtual unknown_ret GetMember(char  const*,ILuaObject *);
+		virtual unknown_ret GetMember(float,ILuaObject *);
+
+		virtual unknown_ret SetMember(char  const*,unsigned long long);
+		virtual unknown_ret SetReference(int);
+
+		virtual unknown_ret IsBool(void);
+
+		virtual unknown_ret RemoveMember(char  const*);
+		virtual unknown_ret RemoveMember(float);
+
+		virtual unknown_ret MemberIsNil(char  const*);
+
+		virtual unknown_ret SetMemberDouble(float,float);
+		virtual unknown_ret SetMemberDouble(char  const*,float);
+		virtual unknown_ret GetMemberDouble(char  const*,double);
+
+		virtual unknown_ret CopyFrom(ILuaObject *);
+};
 #endif // ILUAOBJECT_H
