@@ -96,6 +96,8 @@ class ILuaObject : public ILuaObject_001
 		virtual void			SetFloat( float val ) = 0;
 		virtual void			SetString( const char* val ) = 0;
 
+		// GM13: get double
+		virtual double			GetDouble( void ) = 0;
 		// Return members of table
 #ifndef NO_SDK
 		virtual CUtlLuaVector*	GetMembers( void ) = 0;
