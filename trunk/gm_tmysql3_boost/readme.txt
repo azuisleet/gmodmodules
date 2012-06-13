@@ -6,14 +6,15 @@ libmysql is provided for your convenience, you can get it from the mysql website
 
 Functions:
 
-tmysql.initialize(host, user, pass, database, [port])
-	Starts the library
+tmysql.initialize(host, user, pass, database, port)
+	Starts the library (port is required; setting 0 assumes default MySQL port)
 
 tmysql.query(sqlquery, [callback], [flags], [callbackarg])
 	Sends a query to the server, callback is a function, flags are
-		1	Assoc results	Your callback will be sent a table with field names for keys
-		2	Last ID		Your callback will be sent the last id as the third parameter
+		QUERY_FLAG_ASSOC		Assoc results	Your callback will be sent a table with field names for keys
+		QUERY_FLAG_LASTID		Last ID			Your callback will be sent the last id as the third parameter
 	Callbacks are func([callbackarg], resulttable, querystatus, error or lastid)
+		Query status can be QUERY_SUCCESS or QUERY_FAIL
 
 tmysql.escape(sqlquery)
 	Returns an escaped string
