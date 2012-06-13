@@ -118,7 +118,7 @@
 				Optimization="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="../common;&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;"
+				AdditionalIncludeDirectories="common;&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_pimpmyride_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
