@@ -14,21 +14,19 @@ class Hash_Boilerplate
 public:
 	Hash_Boilerplate(ILuaInterface *gLua)
 	{
+
 		gLua->CheckType(1, GLua::TYPE_STRING);
+
 
 		byte Digest[T::DIGESTSIZE];
 		T().CalculateDigest((byte *)&Digest, (const byte *)gLua->GetString(1), gLua->StringLength(1));
 
-		HexEncoder encoder;
-		std::string output;
-		StringSink sink(output);
+		gLua->Push("Test");
 
-		encoder.Attach(&sink);
-		encoder.Put((byte *)&Digest, sizeof(Digest));
-		encoder.MessageEnd();
+		std::string output;
+		ArraySource(Digest, sizeof(Digest), true, new HexEncoder(new StringSink(output)));
 
 		gLua->Push(output.c_str());
-		output.clear();
 	}
 };
 
