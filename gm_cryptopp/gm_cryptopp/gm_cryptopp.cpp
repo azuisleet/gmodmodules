@@ -17,11 +17,8 @@ public:
 
 		gLua->CheckType(1, GLua::TYPE_STRING);
 
-
 		byte Digest[T::DIGESTSIZE];
 		T().CalculateDigest((byte *)&Digest, (const byte *)gLua->GetString(1), gLua->StringLength(1));
-
-		gLua->Push("Test");
 
 		std::string output;
 		ArraySource(Digest, sizeof(Digest), true, new HexEncoder(new StringSink(output)));
