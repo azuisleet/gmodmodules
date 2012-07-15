@@ -2,6 +2,10 @@ Installation:
 copy gm_tmysql.dll to garrysmod/garrysmod/lua/includes/modules
 copy libmysql.dll to garrysmod/
 
+Linux Installation:
+until I decide to give in and static link everything, you need to copy over everything in redist/ to your bin/ folder in your orangebox/ installation.
+Beware we're overwriting the libstdc++ and libgcc_s provided by Valve.
+
 libmysql is provided for your convenience, you can get it from the mysql website
 
 Functions:
@@ -41,3 +45,4 @@ Also see the two test files included
 Compiling:
 
 You need the mysql source headers and link against libmysql.lib
+
