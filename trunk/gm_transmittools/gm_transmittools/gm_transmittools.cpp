@@ -1,8 +1,10 @@
 #include "gm_transmittools.h"
 #include "sigscan.h"
 
+#ifdef GMOD13
 #define INTERFACEVERSION_VENGINESERVERGMOD	"VEngineServerGMod021"
 #define INTERFACEVERSION_SERVERGAMEDLLGMOD "ServerGameDLL_GMOD_007"
+#endif
 
 GMOD_MODULE(Start, Close)
 
@@ -358,11 +360,16 @@ int Start(lua_State *L)
 	CreateInterfaceFn engineFactory = Sys_GetFactory( "engine.dll" );
 	CreateInterfaceFn gameServerFactory = Sys_GetFactory( "server.dll" );
 
+#ifdef GMOD13
 	engine = (IVEngineServer *)engineFactory(INTERFACEVERSION_VENGINESERVERGMOD, NULL);
-	networkstringtable = (INetworkStringTableContainer *)engineFactory(INTERFACENAME_NETWORKSTRINGTABLESERVER, NULL);
-
-	gameents = (IServerGameEnts *)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
 	gamedll = (IServerGameDLL *)gameServerFactory(INTERFACEVERSION_SERVERGAMEDLLGMOD, NULL);
+#else
+	engine = (IVEngineServer *)engineFactory(INTERFACEVERSION_VENGINESERVER, NULL);
+	gamedll = (IServerGameDLL *)gameServerFactory(INTERFACEVERSION_SERVERGAMEDLL, NULL);
+#endif
+	networkstringtable = (INetworkStringTableContainer *)engineFactory(INTERFACENAME_NETWORKSTRINGTABLESERVER, NULL);
+	gameents = (IServerGameEnts *)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
+
 
 	g_pLua = gLua;
 
