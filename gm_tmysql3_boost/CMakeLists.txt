@@ -19,7 +19,7 @@ link_directories("${MYSQL_LINK_DIR}")
 
 add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp)
 
-target_link_libraries(gm_tmysql ${Boost_LIBRARIES})
+#target_link_libraries(gm_tmysql ${Boost_LIBRARIES})
 if(MSVC)
 	target_link_libraries(gm_tmysql libmysql)
 else()	
