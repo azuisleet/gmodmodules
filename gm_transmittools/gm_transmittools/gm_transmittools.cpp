@@ -17,10 +17,10 @@ int umsgStringTableOffset;
 
 
 // gEntList, from Sourcemod gamedata
-#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
-#define LEVELSHUTDOWNMASK "x????x????x????x????x????x"
-#define LEVELSHUTDOWNLEN 26
-#define ENTLISTOFFSET 16
+#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
+#define LEVELSHUTDOWNMASK "x????x????x????x????x"
+#define LEVELSHUTDOWNLEN 21
+#define ENTLISTOFFSET 11
 
 CSigScan LEVELSHUTDOWN_Sig;
 CBaseEntityList * g_pEntityList;
