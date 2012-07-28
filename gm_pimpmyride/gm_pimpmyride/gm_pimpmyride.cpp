@@ -6,27 +6,12 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "sigscan.h"
-
-// gEntList, from Sourcemod gamedata
-#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
-#define LEVELSHUTDOWNMASK "x????x????x????x????x"
-#define LEVELSHUTDOWNLEN 21
-#define ENTLISTOFFSET 11
-
-CSigScan LEVELSHUTDOWN_Sig;
 
 #elif defined _LINUX
 
 #define ENGINE_LIB "engine.so"
 #define VPHYSICS_LIB "vphysics.so"
 #define SERVER_LIB "garrysmod/bin/server.so"
-
-#include <dlfcn.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "sourcemod/memutils.h"
 
 #endif
 
@@ -49,18 +34,6 @@ GMOD_MODULE(Start, Close)
 
 IPhysicsSurfaceProps *surfaceprop;
 
-CGlobalEntityList *gEntList_f;
-
-IChangeInfoAccessor *CBaseEdict::GetChangeAccessor()
-{
-	return engine->GetChangeAccessor( (const edict_t *)this );
-}
-
-const IChangeInfoAccessor *CBaseEdict::GetChangeAccessor() const
-{
-	return engine->GetChangeAccessor( (const edict_t *)this );
-}
-
 inline ILuaObject *PushVector( ILuaInterface *gLua, const Vector& vec )
 {
 	ILuaObject* NVec = gLua->GetGlobal("Vector");
@@ -78,6 +51,31 @@ inline ILuaObject *PushVector( ILuaInterface *gLua, const Vector& vec )
 	return returno;
 }
 
+IServerUnknown *LookupEntity(int index)
+{
+	edict_t *pEdict = engine->PEntityOfEntIndex(index);
+
+	if (!pEdict)
+		return NULL;
+
+	IServerUnknown *pUnk = pEdict->GetUnknown();
+
+	if (!pUnk)
+		return NULL;
+
+	return pUnk;
+}
+
+CBaseEntity *GetBaseEntity(int index)
+{
+	IServerUnknown *pUnknown = LookupEntity(index);
+	if(pUnknown == NULL)
+		return NULL;
+
+	return pUnknown->GetBaseEntity();
+}
+
+
 #define LUA_GETVEHICLE 	ILuaInterface *gLua = Lua(); \
 						IPhysicsVehicleController *vehicle = GetLuaVehicle( gLua ); \
 						if(!vehicle) return 0;
@@ -86,8 +84,9 @@ IPhysicsVehicleController *GetLuaVehicle(ILuaInterface *gLua)
 {
 	gLua->CheckType(1, GLua::TYPE_ENTITY);
 
-	CBaseEntity *entity = gEntList_f->GetBaseEntity( *(CBaseHandle*)gLua->GetUserData(1) );
-	
+	CBaseHandle *handle = (CBaseHandle*)gLua->GetUserData(1);
+	CBaseEntity *entity = GetBaseEntity(handle->GetEntryIndex());
+
 	if(!entity)
 	{
 		gLua->Error("[gm_pimpmyride] NO ENTITY!");
@@ -401,43 +400,7 @@ int Start(lua_State *L)
 
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 
-	//g_pSharedChangeInfo = engine->GetSharedEdictChangeInfo();
-
 	ILuaInterface *gLua = Lua();
-
-#ifdef _WIN32
-	CSigScan::sigscan_dllfunc = gameServerFactory;
-	bool scan = CSigScan::GetDllMemInfo();
-
-	/*
-
-gEntList: 1091160e 10f72860
-	*/
-	// gEntList
-	LEVELSHUTDOWN_Sig.Init((unsigned char *) LEVELSHUTDOWN, LEVELSHUTDOWNMASK, LEVELSHUTDOWNLEN);
-	unsigned char *addr = (unsigned char *)LEVELSHUTDOWN_Sig.sig_addr;
-
-	if(addr == NULL)
-	{
-		gLua->Error("[gm_pimpmyride] NO ENTITY LIST ERROR");
-		return 0;
-	}
-
-	gEntList_f = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
-
-	Msg("[gm_pimpmyride] LEVELSHUTDOWN_Sig.sig_addr: %x\n", addr);
-#elif defined _LINUX
-	void *hServer = dlopen( SERVER_LIB, RTLD_LAZY );
-
-	if ( hServer )
-	{
-		gEntList_f = (CGlobalEntityList *)ResolveSymbol( hServer, "gEntList" );
-
-		dlclose( hServer );
-	}
-#endif
-
-	Msg("[gm_pimpmyride] gEntList: %x\n", gEntList_f);
 
 	ILuaObject *metalist = gLua->GetGlobal("_R");
 	ILuaObject *vmeta = metalist->GetMember("Vehicle");
