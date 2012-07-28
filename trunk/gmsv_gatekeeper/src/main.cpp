@@ -105,6 +105,7 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		case 19:
 		case 20:
 		case 21:
+		case 22:
 		{
 			// steamid is always at the beginning, and is reliable
 			rawSteamID = *(uint64 *)cert;
