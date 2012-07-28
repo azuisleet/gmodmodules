@@ -2,15 +2,15 @@ MODULE_NAME=gmsv_gatekeeper
 
 # Path configuration
 SOURCE_SDK=../../sdk
-SRCDS_DIR=../../../Downloads/srcds_gmod_linux/orangebox
+SRCDS_DIR=../../../orangebox
 
 PROJECT_DIR=.
 OUT_DIR=../Release
 OBJ_DIR=./Release
 
 # Compilation Configuration
-COMPILER=/usr/bin/g++-4.3
-LINK=/usr/bin/g++-4.3
+COMPILER=/usr/bin/g++-4.4
+LINK=/usr/bin/g++-4.4
 
 USER_CFLAGS=-m32
 USER_LFLAGS=-m32
@@ -18,10 +18,10 @@ USER_LFLAGS=-m32
 OPTFLAGS=-O1 -fomit-frame-pointer -ffast-math -fforce-addr -funroll-loops -fthread-jumps -fcrossjumping -foptimize-sibling-calls -fcse-follow-jumps -fcse-skip-blocks -fgcse -fgcse-lm -fexpensive-optimizations -frerun-cse-after-loop -fcaller-saves -fpeephole2 -fschedule-insns2 -fsched-interblock -fsched-spec -fregmove -fstrict-overflow -fdelete-null-pointer-checks -freorder-blocks -freorder-functions -falign-functions -falign-jumps -falign-loops -falign-labels -ftree-vrp -ftree-pre -finline-functions -funswitch-loops -fgcse-after-reload
 
 LIBFILES= \
-  $(SOURCE_SDK)/lib/linux/tier1.a \
-  $(SOURCE_SDK)/lib/linux/choreoobjects.a \
-  $(SOURCE_SDK)/lib/linux/particles.a \
-  $(SOURCE_SDK)/lib/linux/dmxloader.a \
+  $(SOURCE_SDK)/lib/linux/tier1_i486.a \
+  $(SOURCE_SDK)/lib/linux/choreoobjects_i486.a \
+  $(SOURCE_SDK)/lib/linux/particles_i486.a \
+  $(SOURCE_SDK)/lib/linux/dmxloader_i486.a \
   libtier0.so \
   libvstdlib.so \
   libsteam_api.so
