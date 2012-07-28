@@ -1,5 +1,4 @@
 #include "gm_transmittools.h"
-#include "sigscan.h"
 
 #ifdef GMOD13
 #define INTERFACEVERSION_VENGINESERVERGMOD	"VEngineServerGMod021"
@@ -17,25 +16,26 @@ IServerGameDLL *gamedll = NULL;
 int umsgStringTableOffset;
 //int tickinterval;
 
-
-// gEntList, from Sourcemod gamedata
-#define LEVELSHUTDOWN "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xE8"
-#define LEVELSHUTDOWNMASK "x????x????x????x????x"
-#define LEVELSHUTDOWNLEN 21
-#define ENTLISTOFFSET 11
-
-CSigScan LEVELSHUTDOWN_Sig;
-CBaseEntityList * g_pEntityList;
-
 std::bitset<MAX_EDICTS> sentEnts[MAX_GMOD_PLAYERS];
 
-CBaseEntity *GetBaseEntityFromEntInfo(int index)
+IServerUnknown *LookupEntity(int index)
 {
-	edict_t *pEdict = engine->PEntityOfEntIndex( index );
-	if(pEdict == NULL)
+	edict_t *pEdict = engine->PEntityOfEntIndex(index);
+
+	if (!pEdict)
 		return NULL;
 
-	IServerUnknown *pUnknown = pEdict->GetUnknown();
+	IServerUnknown *pUnk = pEdict->GetUnknown();
+
+	if (!pUnk)
+		return NULL;
+
+	return pUnk;
+}
+
+CBaseEntity *GetBaseEntity(int index)
+{
+	IServerUnknown *pUnknown = LookupEntity(index);
 	if(pUnknown == NULL)
 		return NULL;
 
@@ -44,7 +44,7 @@ CBaseEntity *GetBaseEntityFromEntInfo(int index)
 
 int ResolveEntInfoOwner(EntInfo *ent)
 {
-	CBaseEntity *entity = GetBaseEntityFromEntInfo(ent->entindex);
+	CBaseEntity *entity = GetBaseEntity(ent->entindex);
 	if(entity == NULL)
 		return -1;
 
@@ -68,7 +68,7 @@ int ResolveEHandleForEntity(ILuaObject *luaobject)
 	if(handle == NULL || !handle->IsValid())
 		return 0;
 
-	if ( handle->Get() )
+	if ( GetBaseEntity(handle->GetEntryIndex()) )
 	{
 		int iSerialNum = handle->GetSerialNumber() & (1 << NUM_NETWORKED_EHANDLE_SERIAL_NUMBER_BITS) - 1;
 		return handle->GetEntryIndex() | (iSerialNum << MAX_EDICT_BITS);
@@ -385,20 +385,6 @@ int Start(lua_State *L)
 		(PVOID)(&(PVOID&)CDetour::CheckTransmit));
 
 	DetourTransactionCommit();
-
-	CSigScan::sigscan_dllfunc = (CreateInterfaceFn)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
-	bool scan = CSigScan::GetDllMemInfo();
-
-	LEVELSHUTDOWN_Sig.Init((unsigned char *) LEVELSHUTDOWN, LEVELSHUTDOWNMASK, LEVELSHUTDOWNLEN);
-	unsigned char *addr = (unsigned char *)LEVELSHUTDOWN_Sig.sig_addr;
-
-	if(addr == NULL)
-	{
-		gLua->Error("NO ENTITY LIST ERROR");
-		return 0;
-	}
-
-	g_pEntityList = *((CGlobalEntityList **)(addr + ENTLISTOFFSET));
 
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
 
