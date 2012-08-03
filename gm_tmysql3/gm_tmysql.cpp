@@ -20,12 +20,13 @@ int Start(lua_State *L)
 	mysql_library_init( 0, NULL, NULL );
 
 	ILuaInterface *gLua = Lua();
+	ILuaObject *G = gLua->Global();
 
-	gLua->SetGlobal( "QUERY_SUCCESS", QUERY_SUCCESS );
-	gLua->SetGlobal( "QUERY_FAIL", QUERY_FAIL );
+	G->SetMember( "QUERY_SUCCESS", QUERY_SUCCESS );
+	G->SetMember( "QUERY_FAIL", QUERY_FAIL );
 
-	gLua->SetGlobal( "QUERY_FLAG_ASSOC", (float)QUERY_FLAG_ASSOC );
-	gLua->SetGlobal( "QUERY_FLAG_LASTID", (float)QUERY_FLAG_LASTID );
+	G->SetMember( "QUERY_FLAG_ASSOC", (float)QUERY_FLAG_ASSOC );
+	G->SetMember( "QUERY_FLAG_LASTID", (float)QUERY_FLAG_LASTID );
 
 	ILuaObject* mfunc = gLua->GetNewTable();
 		mfunc->SetMember("initialize", initialize);
@@ -33,9 +34,10 @@ int Start(lua_State *L)
 		mfunc->SetMember("escape", escape);
 		mfunc->SetMember("setcharset", setcharset);
 		mfunc->SetMember("poll", poll);
-	gLua->SetGlobal( "tmysql", mfunc );
+	G->SetMember( "tmysql", mfunc );
 	mfunc->UnReference();
 
+	G->UnReference();
 	return 0;
 }
 
@@ -101,13 +103,14 @@ LUA_FUNCTION( initialize )
 		return 2;
 	}
 
-	ILuaObject* database = gLua->GetGlobal( "tmysql" );
+	ILuaObject* G = gLua->Global();
+	ILuaObject* database = G->GetMember( "tmysql" );
 	database->SetMemberUserDataLite( USERDATA_PTR, mysqldb );
 
 	database->UnReference();
 
 	// hook.Add("Think", "TMysqlPoll", tmysql.poll)
-	ILuaObject *hookt = gLua->GetGlobal("hook");
+	ILuaObject *hookt = G->GetMember("hook");
 	ILuaObject *addf = hookt->GetMember("Add");
 	addf->Push();
 	gLua->Push("Think");
@@ -117,6 +120,7 @@ LUA_FUNCTION( initialize )
 
 	hookt->UnReference();
 	addf->UnReference();
+	G->UnReference();
 
 	gLua->Push( true );
 	return 1;
@@ -205,7 +209,11 @@ LUA_FUNCTION( poll )
 
 Database* GetMySQL( ILuaInterface* gLua )
 {
-	ILuaObject* mysql = gLua->GetGlobal( "tmysql" );
+	ILuaObject* G = gLua->Global();
+	if (!G) return NULL;
+
+	ILuaObject* mysql = G->GetMember( "tmysql" );
+	G->UnReference();
 	if (!mysql) return NULL;
 
 	Database* pData = (Database*)mysql->GetMemberUserDataLite( USERDATA_PTR );
