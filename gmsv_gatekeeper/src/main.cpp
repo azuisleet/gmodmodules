@@ -137,9 +137,11 @@ bool VFUNC newCheckPassword( CBaseServer *srv, netadr_t &netinfo, const char *pa
 	if ( steam.BIndividualAccount() )
 		steamid = steam.Render();
 	
-	ILuaObject *hookTable = gLua->GetGlobal( "hook" );
+	ILuaObject *G = gLua->Global();
+	ILuaObject *hookTable = G->GetMember( "hook" );
 	ILuaObject *hookCallFunc = hookTable->GetMember( "Call" );
-	
+	G->UnReference();
+
 	// hook.Call
 	gLua->Push( hookCallFunc );
 	// hook name
@@ -386,9 +388,11 @@ int Load( lua_State *L )
 	gatekeeper->SetMember( "GetUserByAddress", GetUserByAddress );
 	gatekeeper->SetMember( "ForceProtocol", ForceProtocol );
 	// register as global
-	gLua->SetGlobal( "gatekeeper", gatekeeper );
+	ILuaObject *G = gLua->Global();
+	G->SetMember( "gatekeeper", gatekeeper );
 	// cleanup
 	gatekeeper->UnReference();
+	G->UnReference();
 
 	CreateInterfaceFn tier1Factory = VStdLib_GetICVarFactory();
 

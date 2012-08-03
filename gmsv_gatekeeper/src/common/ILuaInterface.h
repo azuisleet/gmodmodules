@@ -6,6 +6,8 @@
 //										 
 //=============================================================================//
 
+#define GMOD_BETA
+
 #ifndef ILUAINTERFACE_H
 #define ILUAINTERFACE_H
 
@@ -126,12 +128,18 @@ class ILuaInterface001
 		virtual void		Cycle( void ) = 0;
 		virtual void*		GetLuaState() = 0;
 
+#ifdef GMOD_BETA
+		virtual ILuaObject*	Global(void); // Returns _G?
+#endif
+
 		// Stack
 		virtual void		Pop( int i=1 ) = 0;
 
+#ifndef GMOD_BETA
 		// Get
 		virtual void		GetGlobal( ILuaObject* obj, const char* name ) = 0;
 		virtual ILuaObject*	GetGlobal( const char* name ) = 0;
+#endif
 
 		virtual ILuaObject*	GetObject( int i = -1 ) = 0;
 		virtual const char* GetString( int i = -1 ) = 0;
@@ -157,12 +165,13 @@ class ILuaInterface001
 		virtual void		Push( float f ) = 0;
 		virtual void		Push( bool b ) = 0;
 		virtual void		Push( CLuaFunction f ) = 0;
-
+#ifndef GMOD_BETA
 		virtual void		SetGlobal( const char* namename, ILuaObject* obj = 0 ) = 0;
 		virtual void		SetGlobal( const char* namename, bool b ) = 0;
 		virtual void		SetGlobal( const char* namename, float f ) = 0;
 		virtual void		SetGlobal( const char* namename, const char* s ) = 0;
 		virtual void		SetGlobal( const char* namename, CLuaFunction f ) = 0;
+#endif
 		virtual void		NewTable( void ) = 0;
 
 		virtual void			LuaError( const char*, int argument = -1 ) = 0;
@@ -261,7 +270,6 @@ class ILuaInterface002 : public ILuaInterface001
 		// Throws a type error if the string is NULL..
 		virtual const char*		GetStringOrError( int i ) = 0;
 		
-
 		// C++ equivilent of 'require'
 		virtual bool RunModule( const char* strName ) = 0;
 
@@ -280,8 +288,10 @@ class ILuaInterface002 : public ILuaInterface001
 		// Returns the Lua string length of string on stack. Lua strings can have NULLs.
 		virtual int StringLength( int i ) = 0;
 
+#ifndef GMOD_BETA
 		// Simply sets the named global to nil
 		virtual void RemoveGlobal( const char* strName ) = 0;
+#endif
 
 		// How many items are there on the stack
 		virtual int GetStackTop( void ) = 0;
@@ -310,9 +320,11 @@ class ILuaInterface002 : public ILuaInterface001
 		virtual bool ShouldTranslateLuaNames() = 0;
 		virtual void SetShouldTranslateLuaNames( bool bTranslate ) = 0;
 
+#ifndef GMOD_BETA
 		// Push/Get a simple pointer. Not garbage collected, no metatables.
 		virtual void PushLightUserData( void* pData ) = 0;
 		virtual void* GetLightUserData( int i ) = 0;
+#endif
 
 };
 
@@ -327,17 +339,66 @@ class ILuaInterface : public ILuaInterface002
 		virtual void Lock() = 0;
 		virtual void UnLock() = 0;
 
+#ifdef GMOD_BETA
 		virtual void SetGlobalDouble( const char* namename, double iValue ) = 0;
+#endif
 
 		virtual double GetDouble( int iPos ) = 0;
 		virtual void PushDouble( double iInt ) = 0;
 		
 		// ScriptEnforcer "private" methods
+#ifdef GMOD_BETA
+		virtual void GetColor( int iInt ) = 0;
+		virtual void PushColor( int r, int g, int b, int a ) = 0;
+#endif
+
+		virtual void GetStack(int,void *) = 0;
+		virtual void GetInfo(char  const*,void *) = 0;
+		virtual void GetLocal(void *,int) = 0;
+		virtual void GetUpvalue(int,int) = 0;
+		virtual void CreateTable(int,int) = 0;
+		virtual void DisableInfiniteLoopChecking(void) = 0;
+		virtual void RunStringEx(char  const*,char  const*,char  const*,bool,bool,bool) = 0;
+		virtual void PushDataString(char  const*,int) = 0;
+
+#ifdef GMOD_BETA
+		virtual void GetDataString(int,void **) = 0;
+#endif
+
+#ifndef GMOD_BETA
+		virtual void ResetMD5(void) = 0;
+		virtual void MD5Changed(void) = 0;
+		virtual void MD5Ack(int) = 0;
+#endif
+
+		virtual void RequireGlobal(char  const*,char) = 0;
+		virtual void ErrorFromLua(char  const*,...) = 0;
+		virtual void SetTick(int) = 0;
+
+#ifndef GMOD_BETA
+		virtual void GetMD5String(void) = 0;
+#endif
+
+		virtual void GetCurrentLocation(void) = 0;
+#ifdef GMOD_BETA
+	#ifndef NO_SDK
+		virtual void MsgColour(Color const&,char const*,...) = 0;
+	#else
+		virtual void MsgColour(void const&,char const*,...) = 0;
+	#endif
+		virtual void GetField(int,char  const*) = 0;
+		virtual void PushMetaTable(int) = 0;
+		virtual void PushState(lua_State *) = 0;
+		virtual void PopState(void) = 0;
+		// needs shit i dont have, uncomment if you do?
+		//virtual void GetCurrentFile(std::string &) = 0;
+		//virtual void CompileString(Bootil::Buffer &,std::string  const&) = 0;
+#endif
 };
 
 extern ILuaInterface* g_Lua;
 
-// Friendly Macros (Don't try to use these in modules, instead do gLua->GetBool(1) etc)
+// Friendly Macros (Don't try to use these in modules, instead do Lua()->GetBool(1) etc)
 
 #define Get_Bool( i ) (g_Lua->GetBool( i ))
 #define Get_String( i ) (g_Lua->GetStringOrError( i ))
