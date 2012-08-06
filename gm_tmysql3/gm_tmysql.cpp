@@ -20,7 +20,11 @@ int Start(lua_State *L)
 	mysql_library_init( 0, NULL, NULL );
 
 	ILuaInterface *gLua = Lua();
+#ifdef GMOD_BETA
 	ILuaObject *G = gLua->Global();
+#else
+	ILuaObject *G = gLua->GetGlobal("_G");
+#endif
 
 	G->SetMember( "QUERY_SUCCESS", QUERY_SUCCESS );
 	G->SetMember( "QUERY_FAIL", QUERY_FAIL );
@@ -37,7 +41,9 @@ int Start(lua_State *L)
 	G->SetMember( "tmysql", mfunc );
 	mfunc->UnReference();
 
+#ifndef GMOD_BETA
 	G->UnReference();
+#endif
 	return 0;
 }
 
@@ -103,10 +109,13 @@ LUA_FUNCTION( initialize )
 		return 2;
 	}
 
-	ILuaObject* G = gLua->Global();
+#ifdef GMOD_BETA
+	ILuaObject *G = gLua->Global();
+#else
+	ILuaObject *G = gLua->GetGlobal("_G");
+#endif
 	ILuaObject* database = G->GetMember( "tmysql" );
 	database->SetMemberUserDataLite( USERDATA_PTR, mysqldb );
-
 	database->UnReference();
 
 	// hook.Add("Think", "TMysqlPoll", tmysql.poll)
@@ -120,7 +129,9 @@ LUA_FUNCTION( initialize )
 
 	hookt->UnReference();
 	addf->UnReference();
+#ifndef GMOD_BETA
 	G->UnReference();
+#endif
 
 	gLua->Push( true );
 	return 1;
@@ -209,11 +220,18 @@ LUA_FUNCTION( poll )
 
 Database* GetMySQL( ILuaInterface* gLua )
 {
-	ILuaObject* G = gLua->Global();
+#ifdef GMOD_BETA
+	ILuaObject *G = gLua->Global();
+#else
+	ILuaObject *G = gLua->GetGlobal("_G");
+#endif
 	if (!G) return NULL;
 
 	ILuaObject* mysql = G->GetMember( "tmysql" );
+
+#ifndef GMOD_BETA
 	G->UnReference();
+#endif
 	if (!mysql) return NULL;
 
 	Database* pData = (Database*)mysql->GetMemberUserDataLite( USERDATA_PTR );
