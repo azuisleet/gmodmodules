@@ -1,5 +1,6 @@
 // GateKeeper V4.2
 // ComWalk, VoiDeD, Chrisaster
+#define GMOD_BETA
 
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
@@ -140,7 +141,6 @@ bool VFUNC newCheckPassword( CBaseServer *srv, netadr_t &netinfo, const char *pa
 	ILuaObject *G = gLua->Global();
 	ILuaObject *hookTable = G->GetMember( "hook" );
 	ILuaObject *hookCallFunc = hookTable->GetMember( "Call" );
-	G->UnReference();
 
 	// hook.Call
 	gLua->Push( hookCallFunc );
@@ -392,7 +392,6 @@ int Load( lua_State *L )
 	G->SetMember( "gatekeeper", gatekeeper );
 	// cleanup
 	gatekeeper->UnReference();
-	G->UnReference();
 
 	CreateInterfaceFn tier1Factory = VStdLib_GetICVarFactory();
 

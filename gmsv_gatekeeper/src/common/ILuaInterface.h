@@ -6,8 +6,6 @@
 //										 
 //=============================================================================//
 
-#define GMOD_BETA
-
 #ifndef ILUAINTERFACE_H
 #define ILUAINTERFACE_H
 
@@ -314,17 +312,17 @@ class ILuaInterface002 : public ILuaInterface001
 		virtual void PushPath( const char* strPath ) = 0;
 		virtual void PopPath( void ) = 0;
 		virtual const char* GetPath( void ) = 0;
-
+		
+#ifndef GMOD_BETA
 		// Used by the Lua file loading logic to determine whether it should
 		// try to use downloaded files or just the regular ones.
 		virtual bool ShouldTranslateLuaNames() = 0;
 		virtual void SetShouldTranslateLuaNames( bool bTranslate ) = 0;
+#endif
 
-#ifndef GMOD_BETA
 		// Push/Get a simple pointer. Not garbage collected, no metatables.
 		virtual void PushLightUserData( void* pData ) = 0;
 		virtual void* GetLightUserData( int i ) = 0;
-#endif
 
 };
 
@@ -338,10 +336,6 @@ class ILuaInterface : public ILuaInterface002
 		// Thread safety. 
 		virtual void Lock() = 0;
 		virtual void UnLock() = 0;
-
-#ifdef GMOD_BETA
-		virtual void SetGlobalDouble( const char* namename, double iValue ) = 0;
-#endif
 
 		virtual double GetDouble( int iPos ) = 0;
 		virtual void PushDouble( double iInt ) = 0;
