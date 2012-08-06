@@ -16,6 +16,22 @@
 #include "ILuaModuleManager.h"
 
 // You should place this at the top of your module
+#ifdef GMOD_BETA
+#define GMOD_MODULE( _startfunction_, _closefunction_ ) \
+	ILuaModuleManager* modulemanager = NULL;\
+	int _startfunction_( lua_State* L );\
+	int _closefunction_( lua_State* L );\
+	DLL_EXPORT int gmod13_open( ILuaInterface* i ) \
+	{ \
+		modulemanager = i->GetModuleManager();\
+		return _startfunction_( (lua_State*)(i->GetLuaState()) );\
+	}\
+	DLL_EXPORT int gmod_close( lua_State* L ) \
+	{\
+		_closefunction_( L );\
+		return 0;\
+	}
+#else
 #define GMOD_MODULE( _startfunction_, _closefunction_ ) \
 	ILuaModuleManager* modulemanager = NULL;\
 	int _startfunction_( lua_State* L );\
@@ -29,6 +45,7 @@
 	{\
 		_closefunction_( L );\
 		return 0;\
-	}\
+	}
+#endif
 
 #define LUA_FUNCTION( _function_ ) static int _function_( lua_State* L )

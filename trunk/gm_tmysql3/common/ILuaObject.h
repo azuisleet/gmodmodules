@@ -97,10 +97,16 @@ class ILuaObject : public ILuaObject_001
 		virtual void			SetFloat( float val ) = 0;
 		virtual void			SetString( const char* val ) = 0;
 
+#ifdef GMOD_BETA
 		// GM13: get double
 		virtual double			GetDouble( void ) = 0;
+#endif
 		// Return members of table
+#ifndef NO_SDK
 		virtual CUtlLuaVector*	GetMembers( void ) = 0;
+#else
+		virtual void*	GetMembers( void ) = 0;
+#endif
 
 		// Set member 'pointer'. No GC, no metatables. 
 		virtual void			SetMemberUserDataLite( const char* strKeyName, void* pData ) = 0;
