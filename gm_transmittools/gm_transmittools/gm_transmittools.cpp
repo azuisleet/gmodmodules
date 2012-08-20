@@ -59,6 +59,23 @@ int ResolveEntInfoOwner(EntInfo *ent)
 	return pOwnerEdict - pBaseEdict;*/
 }
 
+int ResolveEHandleForEntity(int index)
+{
+	IServerUnknown* unknown = LookupEntity(index);
+
+	if ( unknown )
+	{
+		const CBaseHandle& handle = unknown->GetRefEHandle();
+
+		int iSerialNum = handle.GetSerialNumber() & (1 << NUM_NETWORKED_EHANDLE_SERIAL_NUMBER_BITS) - 1;
+		return handle.GetEntryIndex() | (iSerialNum << MAX_EDICT_BITS);
+	}
+	else
+	{
+		return INVALID_NETWORKED_EHANDLE_VALUE;
+	}
+
+}
 int ResolveEHandleForEntity(ILuaObject *luaobject)
 {
 	if(luaobject == NULL)
