@@ -64,24 +64,21 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, char &bytes, Packet &packet
 
 	ItemCount &count = countiter.first->second;
 
-	// added this entity to the packet best case is 2 ent + 1 num + 2 best case (5)
+	// added this entity to the packet best case is 4 ent + 1 num + 2 best case (7)
 	if(countiter.second == true)
 	{
 		// we can't fit the ent and a best case
-		if(bytes < 5)
+		if(bytes < 7)
 		{
 			packet.itemcount.erase(countiter.first);
 			return false;
 		}
 
-		if(ent->entindex == 0)
-			packet.write.WriteShort(-1);
-		else
-			packet.write.WriteShort(ent->entindex);
+		packet.write.WriteLong(ResolveEHandleForEntity(ent->entindex));
 
 		count.offset = packet.write.m_iCurBit;
 		packet.write.WriteChar(0);
-		bytes -= 3;
+		bytes -= 5;
 	}
 
 	int size = 0;
@@ -277,32 +274,35 @@ void DispatchPackets()
 // main processing loop that goes through IncompleteEntities
 int NWTickAll(lua_State *)
 {
-	if(IncompleteEntities.size() == 0)
-		return 0;
-
-	//printf("Tick with %d incomplete\n", IncompleteEntities.size());
-	char bytes = NWVAR_BYTES_PER_TICK;
-
-	entinfovec::iterator iter = IncompleteEntities.begin();
-	while(iter != IncompleteEntities.end())
+	// double time?
+	for(int i = 0; i < 2; i++) 
 	{
-		if(NWTickEntity(*iter, bytes))
+		if(IncompleteEntities.size() == 0)
+			return 0;
+
+		//printf("Tick with %d incomplete\n", IncompleteEntities.size());
+		char bytes = NWVAR_BYTES_PER_TICK;
+
+		entinfovec::iterator iter = IncompleteEntities.begin();
+		while(iter != IncompleteEntities.end())
 		{
-			//printf("Tick shows end %d completed and transmitted\n", (*iter)->entindex);
-			*iter = IncompleteEntities.back();
-			IncompleteEntities.pop_back();
-		} else {
-			++iter;
+			if(NWTickEntity(*iter, bytes))
+			{
+				//printf("Tick shows end %d completed and transmitted\n", (*iter)->entindex);
+				*iter = IncompleteEntities.back();
+				IncompleteEntities.pop_back();
+			} else {
+				++iter;
+			}
+
+			// don't bother if we can't fit the best case
+			if(bytes < 2)
+				break;
 		}
 
-		// don't bother if we can't fit the best case
-		if(bytes < 2)
-			break;
+		DispatchPackets();
+		//printf("Final bytes: %d -- %d\n", bytes, NWVAR_BYTES_PER_TICK - bytes);
 	}
-
-	DispatchPackets();
-	//printf("Final bytes: %d -- %d\n", bytes, NWVAR_BYTES_PER_TICK - bytes);
-
 	return 0;
 }
 

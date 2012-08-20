@@ -26,6 +26,7 @@ extern ILuaInterface *g_pLua;
 #include <detours.h>
 
 int ResolveEntInfoOwner(EntInfo *ent);
+int ResolveEHandleForEntity(int index);
 int ResolveEHandleForEntity(ILuaObject *luaobject);
 
 extern IVEngineServer *engine;
