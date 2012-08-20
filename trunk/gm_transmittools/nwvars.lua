@@ -21,14 +21,23 @@ end
 
 NWDEBUG = false
 
+NW_ENTITY_DATA = {}
+
 if SERVER then
 	require("transmittools")
 
 	hook.Add("Tick", "NWTick", transmittools.NWTick)
 
 	hook.Add("EntityRemoved", "NWCleanup", function(ent)
-		if IsValid(ent) && !ent:IsPlayer() then
-			transmittools.EntityDestroyed(ent:EntIndex())
+		if !IsValid(ent) then return end
+		
+		local index = ent:EntIndex()
+		NW_ENTITY_DATA[index] = nil
+		
+		transmittools.EntityDestroyed(index)
+
+		if ent:IsPlayer() then
+			transmittools.PlayerDestroyed(index)
 		end
 	end)
 
@@ -37,54 +46,77 @@ if SERVER then
 		transmittools.PlayerDestroyed(entindex)
 		transmittools.EntityDestroyed(entindex)
 	end)
-
-	hook.Add("PlayerThink", "PlayerCrashTest", function(ply)
-		local time = transmittools.PlayerTimeout(ply:EntIndex())
-		if time == nil then return end
-
-		if time > 2 then
-			ply._NetCrash = true
-		elseif ply._NetCrash then
-			ply._NetCrash = false
-			transmittools.InvalidatePlayerCrashed(ply:EntIndex())
-		end
-	end)
 end
 
-local function ApplyTableToTarget(target)
-	local _t = target:GetTable()
-	local etable = { _t = _t }
-    
-	local mt = {
-		__index = function (t,k)
-			return t._t[k]
-		end,
+local ApplyTableToTarget
+if SERVER then
+	ApplyTableToTarget = function(target)	
+		local _t = target:GetTable()
+		local etable = { _t = _t }
+		local index = target:EntIndex()
+		
+		local mt = {
+			__index = function (t, k)
+				if NW_ENTITY_DATA[index][k] then 
+					return NW_ENTITY_DATA[index][k]
+				end
+				
+				return t._t[k]
+			end,
 
-		__newindex = function (t,k,v)
-			if t._t.__nwtable[k] && t._t[k] != v then
-				local ent = t.Entity or t.Weapon
-				local index = ent:EntIndex()
-				local nwvar = ent.__nwtable[k]
+			__newindex = function (t,k,v)
+				local nwtable = t._t.__nwtable
 
-				if nwvar.type == NWTYPE_ENTITY then
-					local nentindex = -1
-					if IsValid(v) || v == GetWorldEntity() then
-						nentindex = v:EntIndex()
+				if nwtable[k] ~= nil then
+					local entitydata = NW_ENTITY_DATA[index]
+					
+					if entitydata[k] ~= v then
+						local ent = t.Entity or t.Weapon
+						local nwvar = nwtable[k]
+
+						if nwvar.type == NWTYPE_ENTITY then
+							local nentindex = -1
+							if IsValid(v) || v == GetWorldEntity() then
+								nentindex = v:EntIndex()
+							end
+							transmittools.EntityVariableUpdated(index, nwvar.index-1, nentindex)
+						end
+
+						transmittools.VariableUpdated(index, nwvar.index-1)
+						
+						ent.__nwvalues[nwvar.index] = v
+						NW_ENTITY_DATA[index][k] = v
 					end
-					transmittools.EntityVariableUpdated(index, nwvar.index-1, nentindex)
+					
+					return
 				end
 
-				transmittools.VariableUpdated(index, nwvar.index-1)
-
-				ent.__nwvalues[nwvar.index] = v
+				t._t[k] = v
 			end
+		}
 
-			t._t[k] = v
-		end
-	}
+		setmetatable(etable, mt)
+		target:SetTable(etable)
+	end
+else
+	ApplyTableToTarget = function(target)	
+		local _t = target:GetTable()
+		local etable = { _t = _t }
+		local index = target:EntIndex()
+		
+		local mt = {
+			__index = function (t, k)
+				if NW_ENTITY_DATA[index][k] then 
+					return NW_ENTITY_DATA[index][k]
+				end
+				
+				return t._t[k]
+			end
+		}
 
-	setmetatable(etable, mt)
-	target:SetTable(etable)
+		setmetatable(etable, mt)
+		target:SetTable(etable)
+	end
 end
 
 function RegisterNWTable(target, ntable)
@@ -101,6 +133,12 @@ function RegisterNWTable(target, ntable)
 
 	local nlookup = {}
 
+	local index = target:EntIndex()
+	if not NW_ENTITY_DATA[index] then 
+		NW_ENTITY_DATA[index] = {} 
+		if CLIENT then NW_ENTITY_DATA[index].__entity = target end
+	end
+	
 	if SERVER then
 		target.__nwvalues = {}
 		transmittools.NetworkedEntityCreated(index, target.__nwvalues)
@@ -115,7 +153,7 @@ function RegisterNWTable(target, ntable)
 			print(name, type, repl, default)
 		end
 
-		target[name] = default
+		NW_ENTITY_DATA[index][name] = default
 
 		if CLIENT then
 			// {name, type, repl, proxy}
@@ -131,10 +169,7 @@ function RegisterNWTable(target, ntable)
 
 	target.__nwtable = nlookup
 
-
-	if CLIENT then return end
-
-	transmittools.NetworkedEntityCreatedFinish(index)
+	if SERVER then transmittools.NetworkedEntityCreatedFinish(index) end
 
 	ApplyTableToTarget(target)
 end
@@ -153,7 +188,7 @@ end
 hook.Add("OnEntityCreated", "SetupNWTablePlayer", function(ent)
 	if !IsValid(ent) then return end
 
-	if ent:GetClass() == "player" then
+	if ent:IsPlayer() then
 		if SERVER then
 			transmittools.PlayerCreated(ent:EntIndex())
 		end

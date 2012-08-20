@@ -14,51 +14,52 @@ function ParsePacket(um)
 		print("parsing packet")
 	end
 
-	local ent = um:ReadShort()
+	local entity = um:ReadEntity()
+	
+	while entity:IsValid() do
+		local nwtable = entity.__nwtable
+		if !nwtable then return end
 
-	while ent != 0 do
-		if ent == -1 then ent = 0 end
-		local entity = Entity(ent)
+		local ent_index = entity:EntIndex()
+		
+		if not NW_ENTITY_DATA[ent_index].__entity:IsValid() then
+			if NWDEBUG then print("packet: we need to re-create ", entity) end
+			NW_ENTITY_DATA[ent_index] = {}
+			NW_ENTITY_DATA[ent_index].__entity = entity
+		end
+		
+		local items = um:ReadChar()
 
-		if IsValid(entity) || entity == GetWorldEntity() then
-
-			local nwtable = entity.__nwtable
-			if !nwtable then return end
-
-			local items = um:ReadChar()
-
-			for i=1, items do
-				local index = um:ReadChar()
-				local tbl = nwtable[index]
-				if !tbl then
-					ErrorNoHalt("Missing table for entity " .. tostring(entity) .. " at index " .. tostring(index))
-					return
-				end
-
-				if NWDEBUG then
-					print(entity, tbl.type, Readers[tbl.type])
-				end
-				local value = um[Readers[tbl.type]](um)
-
-				if tbl.proxy then
-					pcall(tbl.proxy, entity, tbl.name, entity[tbl.name], value)
-				end
-
-				if NWDEBUG then
-					print(ent, entity, tbl.name, value)
-				end
-
-				entity[tbl.name] = value
+		for i=1, items do
+			local index = um:ReadChar()
+			local tbl = nwtable[index]
+			if !tbl then
+				// can this happen? do we need to defer?
+				ErrorNoHalt("Missing table for entity " .. tostring(entity) .. " at index " .. tostring(index))
+				return
 			end
 
-		else
 			if NWDEBUG then
-				print("Invalid entity ", entity, ent)
+				print(entity, tbl.type, Readers[tbl.type])
 			end
-			return
+			local value = um[Readers[tbl.type]](um)
+
+			if tbl.proxy then
+				local b, err = pcall(tbl.proxy, entity, tbl.name, NW_ENTITY_DATA[ent_index][tbl.name], value)
+				
+				if !b then
+					ErrorNoHalt( err )
+				end
+			end
+
+			if NWDEBUG then
+				print(entity, tbl.name, value)
+			end
+
+			NW_ENTITY_DATA[ent_index][tbl.name] = value
 		end
 
-		ent = um:ReadShort()
+		entity = um:ReadEntity()
 	end
 end
 
