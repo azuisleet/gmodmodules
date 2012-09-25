@@ -13,6 +13,9 @@ struct ItemCount
 {
 	unsigned char count;
 	int offset;
+
+	ItemCount() : count(0), offset(0) {}
+	ItemCount(const ItemCount& other) : count(other.count), offset(other.offset) {}
 };
 
 typedef std::tr1::unordered_map<EntInfo *, ItemCount> entitemcount;
@@ -20,6 +23,15 @@ struct Packet
 {
 	bf_write write;
 	entitemcount itemcount;
+
+	Packet() : write(), itemcount() {}
+	Packet(const Packet& other) : write(), itemcount(other.itemcount)
+	{
+		write.m_pData = other.write.m_pData;
+		write.m_nDataBytes = other.write.m_nDataBytes;
+		write.m_nDataBits = other.write.m_nDataBits;
+		write.m_iCurBit = other.write.m_iCurBit;
+	}
 };
 
 typedef std::tr1::unordered_map<PlayerVector, Packet, PacketHash> packetmap;
@@ -58,67 +70,54 @@ private:
 
 #define NWVAR_BYTES_PER_TICK 64
 
-bool NWTryPack(EntInfo *ent, const ValueInfo &value, char &bytes, Packet &packet)
+bool NWTryPack(EntInfo *ent, const ValueInfo &value, int &bits, Packet &packet, ItemCount &count)
 {
-	std::pair<entitemcount::iterator, bool> countiter = packet.itemcount.insert(entitemcount::value_type(ent, ItemCount()));
-
-	ItemCount &count = countiter.first->second;
-
-	// added this entity to the packet best case is 4 ent + 1 num + 2 best case (7)
-	if(countiter.second == true)
-	{
-		// we can't fit the ent and a best case
-		if(bytes < 7)
-		{
-			packet.itemcount.erase(countiter.first);
-			return false;
-		}
-
-		packet.write.WriteLong(ResolveEHandleForEntity(ent->entindex));
-
-		count.offset = packet.write.m_iCurBit;
-		packet.write.WriteChar(0);
-		bytes -= 5;
-	}
-
 	int size = 0;
 
 	switch(value.type)
 	{
-	case NWTYPE_CHAR:
 	case NWTYPE_BOOL:
 		size = 1;
 		break;
+	case NWTYPE_CHAR:
+		size = 8;
+		break;
 	case NWTYPE_SHORT:
-		size = 2;
+		size = 16;
 		break;
 	case NWTYPE_FLOAT:
 	case NWTYPE_NUMBER:
+		size = 32;
+		break;
 	case NWTYPE_ENTITY:
-		size = 4;
+		size = 32; //MAX_EDICT_BITS;
 		break;
 	case NWTYPE_VECTOR:
 	case NWTYPE_ANGLE:
-		size = 12; // careful..
+		size = 69;
 		break;
 	}
 
-	if(size > bytes)
+	if((size+8) > bits)
 		return false;
 
 	g_pLua->PushReference(ent->entityvaluestable);
 	ILuaObject *valuestable = g_pLua->GetObject();
 	ILuaObject *luavalue = valuestable->GetMember(value.tableoffset);
+	valuestable->UnReference();
 
 	if(value.type == NWTYPE_STRING && luavalue != NULL && luavalue->isString() && luavalue->GetString() != NULL)
 	{
-		size = strlen(luavalue->GetString()) + 1;
-		if(size > bytes)
+		size = ((strlen(luavalue->GetString()) + 1) << 3) + 1;
+		if((size+8) > bits)
+		{
+			luavalue->UnReference();
 			return false;
+		}
 	}
 
-	size++;
-	bytes -= size;
+	size += 8;
+	bits -= size;
 	count.count++;
 
 	// update the count
@@ -191,16 +190,70 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, char &bytes, Packet &packet
 		break;
 	}
 
+	if(luavalue != NULL)
+		luavalue->UnReference();
 	return true;
 }
 
+bool NWTryPack(EntInfo *ent, const ValueInfo &value, int &bits, Packet &packet)
+{
+	ItemCount count;
+	entitemcount::iterator iter = packet.itemcount.find(ent);
+
+	// added this entity to the packet best case is 16 ent + 1 parity + 8 table + 8 num + 16 best case (49)
+	if(iter == packet.itemcount.end())
+	{
+		// we can't fit the ent and a best case
+		if(bits < 49)
+		{
+			return false;
+		}
+
+		if(ent->entindex == 0)
+			packet.write.WriteShort(-1);
+		else
+			packet.write.WriteShort(ent->entindex);
+
+//		packet.write.WriteOneBit(entityParity[ent->entindex]);
+//		packet.write.WriteChar(ent->tableid);
+//		packet.write.WriteLong(ResolveEHandleForEntity(ent->entindex));
+
+		count.offset = packet.write.m_iCurBit;
+		count.count = 0;
+		packet.write.WriteChar(0);
+		bits -= 49;
+
+		bool success = NWTryPack(ent, value, bits, packet, count);
+		packet.itemcount.insert(entitemcount::value_type(ent, count));
+		return success;
+	}
+	else
+	{
+		return NWTryPack(ent, value, bits, packet, iter->second);
+	}
+
+	return false;
+}
+
 // entity tick, returns if the entity is complete
-bool NWTickEntity(EntInfo *ent, char &bytes)
+bool NWTickEntity(EntInfo *ent, int &bits, ValueInfo &value, Packet &packet)
+{
+	if(! NWTryPack(ent, value, bits, packet))
+	{
+		return false;
+	}
+
+	value.currentTransmit = value.finalTransmit;
+	return true;
+}
+
+bool NWTickEntity(EntInfo *ent, int &bits)
 {
 	bool complete = true;
 
 	for(ValueVector::iterator iter = ent->values.begin(); iter != ent->values.end(); ++iter)
 	{
+		Packet packet;
 		ValueInfo &value = *iter;
 
 		// this value is complete, move along
@@ -209,35 +262,32 @@ bool NWTickEntity(EntInfo *ent, char &bytes)
 
 		// xor the final and current to get the bits that need to be set in currentTransmit, which corresponds to the players
 		PlayerVector sendvec = value.finalTransmit ^ value.currentTransmit;
+		packetmap::iterator packetiter = Packets.find(sendvec);
 
-		//printf("Ent %d value %d count %d\n", ent->entindex, value.tableoffset, sendvec.count());
-
-		std::pair<packetmap::iterator, bool> packetiter = Packets.insert(packetmap::value_type(sendvec, Packet()));
-
-		// a new packet is created, but we have < (2 umsg + 2 ent + 1 num + 2 best case) 7
-		if(packetiter.second == true)
+		//best case is 16 ent + 1 parity + 8 table + 8 num + 16 best case (49)
+		// a new packet is created, but we have < (16 umsg + 16 ent + 1 parity + 8 table + 8 num + 16 best case) 65
+		if(packetiter == Packets.end())
 		{
 			// we can't fit a new packet
-			if(bytes < 7)
+			if(bits < 65)
 			{
-				Packets.erase(packetiter.first);
 				complete = false;
 				continue;
 			}
 
-			Packet &packet = packetiter.first->second;
 			packet.write.StartWriting(new char[NWVAR_BYTES_PER_TICK], NWVAR_BYTES_PER_TICK);
+			bits -= 16; // a umsg is created
 
-			bytes -= 2; // a umsg is created
+			if(!NWTickEntity(ent, bits, value, packet))
+				complete = false;
+
+			Packets.insert(packetmap::value_type(sendvec, packet));
 		}
-
-		if(! NWTryPack(ent, value, bytes, packetiter.first->second))
+		else
 		{
-			complete = false;
-			continue;
+			if(!NWTickEntity(ent, bits, value, packetiter->second))
+				complete = false;
 		}
-
-		value.currentTransmit = value.finalTransmit;
 	}
 
 	ent->complete = complete;
@@ -281,27 +331,26 @@ int NWTickAll(lua_State *)
 			return 0;
 
 		//printf("Tick with %d incomplete\n", IncompleteEntities.size());
-		char bytes = NWVAR_BYTES_PER_TICK;
+		int bits = NWVAR_BYTES_PER_TICK << 3;
 
-		entinfovec::iterator iter = IncompleteEntities.begin();
+		entinfovec::const_iterator iter = IncompleteEntities.begin();
 		while(iter != IncompleteEntities.end())
 		{
-			if(NWTickEntity(*iter, bytes))
+			if(NWTickEntity(*iter, bits))
 			{
 				//printf("Tick shows end %d completed and transmitted\n", (*iter)->entindex);
-				*iter = IncompleteEntities.back();
-				IncompleteEntities.pop_back();
+				iter = IncompleteEntities.erase(iter);
 			} else {
 				++iter;
 			}
 
 			// don't bother if we can't fit the best case
-			if(bytes < 2)
+			if(bits < 16)
 				break;
 		}
 
 		DispatchPackets();
-		//printf("Final bytes: %d -- %d\n", bytes, NWVAR_BYTES_PER_TICK - bytes);
+		//printf("Final bits: %d -- %d\n", bits, (NWVAR_BYTES_PER_TICK << 3) - bits);
 	}
 	return 0;
 }

@@ -7,6 +7,9 @@ struct ValueInfo {
 	NWRepl repl; // value repl
 	int tableoffset; // offset of said table
 	int valueentindex; // special case for nwtype_entity so we don't have to call into lua
+
+	ValueInfo() : finalTransmit(), currentTransmit(), type(NUM_NWTYPES), repl(NUM_NWREPLS), tableoffset(0), valueentindex(0) {}
+	ValueInfo(const ValueInfo& other) : finalTransmit(other.finalTransmit), currentTransmit(other.currentTransmit), type(other.type), repl(other.repl), tableoffset(other.tableoffset), valueentindex(other.valueentindex) {}
 };
 
 typedef	std::vector<ValueInfo> ValueVector;
@@ -23,6 +26,16 @@ struct EntInfo {
 
 	int entindex; // ent index
 	int entityvaluestable; // reference to table holding values
+
+	EntInfo() : complete(false), ReplTransmit(), ultimateTransmit(), replsUsed(), values(), entindex(), entityvaluestable() {}
+	EntInfo(const EntInfo& other) : complete(other.complete), ReplTransmit(), ultimateTransmit(other.ultimateTransmit), 
+		replsUsed(other.replsUsed), values(other.values), entindex(other.entindex), entityvaluestable(other.entityvaluestable)
+	{
+		for(int i=0; i < NUM_NWREPLS; i++)
+		{
+			ReplTransmit[i] = other.ReplTransmit[i];
+		}
+	}
 };
 
 typedef std::tr1::unordered_map<int, EntInfo *> netents;
@@ -44,7 +57,7 @@ void PlayerCreated(int player);
 // destroyed a player
 void PlayerDestroyed(int player);
 // _any_ entity is destroyed
-void EntityDestroyed(int entindex);
+int EntityDestroyed(int entindex);
 
 // CheckTransmit calls this, handles repl and values
 void EntityTransmittedToPlayer(int entindex, int playerindex);

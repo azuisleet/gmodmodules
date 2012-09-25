@@ -20,12 +20,11 @@ void UpdateCompleteState(EntInfo *ent, bool newcomplete)
 	{
 		IncompleteEntities.push_back(ent);
 	} else if(!ent->complete && newcomplete) {
-		for(entinfovec::iterator it = IncompleteEntities.begin(); it != IncompleteEntities.end(); ++it)
+		for(entinfovec::const_iterator it = IncompleteEntities.begin(); it != IncompleteEntities.end(); ++it)
 		{
 			if( *it == ent )
 			{
-				*it = IncompleteEntities.back();
-				IncompleteEntities.pop_back();
+				it = IncompleteEntities.erase(it);
 				break;
 			}
 		}
@@ -41,6 +40,14 @@ void NetworkedEntityCreated(int entindex, int tableref)
 	ent->complete = true;
 	ent->entindex = entindex;
 	ent->entityvaluestable = tableref;
+
+	entityParity[entindex].flip();
+
+	netents::const_iterator iter = NetworkedEntities.find(entindex);
+	if(iter != NetworkedEntities.end())
+	{
+		return;
+	}
 
 	NetworkedEntities.insert(netents::value_type(entindex, ent));	
 }
@@ -65,12 +72,11 @@ void PlayerDestroyed(int player)
 	//printf("Player destroyed %d\n", player);
 	sentEnts[player-1].reset();
 
-	for(actpl::iterator it = ActivePlayers.begin(); it != ActivePlayers.end(); ++it)
+	for(actpl::const_iterator it = ActivePlayers.begin(); it != ActivePlayers.end(); ++it)
 	{
 		if( *it == player )
 		{
-			*it = ActivePlayers.back();
-			ActivePlayers.pop_back();
+			it = ActivePlayers.erase(it);
 			break;
 		}
 	}
@@ -78,10 +84,10 @@ void PlayerDestroyed(int player)
 	InvalidatePlayerForAllNetworkedGone(player);
 }
 
-void EntityDestroyed(int entindex)
+int EntityDestroyed(int entindex)
 {
 	if(entindex == 0)
-		return;
+		return -1;
 
 	//printf("Entity destroyed %d\n", entindex);
 	NWDependencies.erase(entindex);
@@ -96,25 +102,46 @@ void EntityDestroyed(int entindex)
 
 	// this entity isn't networked, we're done
 	if(iter == NetworkedEntities.end())
-		return;
+		return -1;
 
 	EntInfo *ent = iter->second;
 
 	//printf("Networked entity destroyed %d\n", entindex);
 
-	for(entinfovec::iterator it = IncompleteEntities.begin(); it != IncompleteEntities.end(); ++it)
+	// clear any remaining dependencies based on bound values
+	for(ValueVector::const_iterator iter = ent->values.begin(); iter != ent->values.end(); ++iter)
+	{
+		if(iter->type != NWTYPE_ENTITY || iter->valueentindex < 0)
+			continue;
+
+		std::pair<nwdepend::const_iterator, nwdepend::const_iterator> result;
+		result = NWDependencies.equal_range(iter->valueentindex);
+		for(nwdepend::const_iterator it = result.first; it != result.second; ++it)
+		{
+			if( it->second == ent )
+			{
+				NWDependencies.erase(it);
+				break;
+			}
+		}
+	}
+
+	for(entinfovec::const_iterator it = IncompleteEntities.begin(); it != IncompleteEntities.end(); ++it)
 	{
 		if( *it == ent )
 		{
-			*it = IncompleteEntities.back();
-			IncompleteEntities.pop_back();
+			it = IncompleteEntities.erase(it);
 			break;
 		}
 	}
 
+	int reference = ent->entityvaluestable;
+
 	//finally:
 	NetworkedEntities.erase(iter);
 	delete ent;
+
+	return reference;
 }
 
 void EntityTransmittedToPlayer(int entindex, int playerindex)
@@ -122,10 +149,10 @@ void EntityTransmittedToPlayer(int entindex, int playerindex)
 	//printf("Entity %d transmitted to play %d\n", entindex, playerindex);
 
 	// find dependencies
-	std::pair<nwdepend::iterator, nwdepend::iterator> result;
+	std::pair<nwdepend::const_iterator, nwdepend::const_iterator> result;
 	result = NWDependencies.equal_range(entindex);
 
-	for(nwdepend::iterator iter = result.first; iter != result.second; ++iter)
+	for(nwdepend::const_iterator iter = result.first; iter != result.second; ++iter)
 	{
 		//printf("Entity %d depends on %d being transmitted, updating for player %d\n", iter->second->entindex, entindex, playerindex);
 		UpdateEntityValuesTransmitsForPlayer(iter->second, playerindex);
@@ -302,18 +329,17 @@ void AddValueToEntityValues(int entindex, int offset, int type, int repl)
 		return;
 	}
 	EntInfo *ent = entiter->second;
-	
-	ent->values.push_back(ValueInfo());
-	ValueInfo &value = ent->values.back();
 
 	ent->replsUsed[repl] = true;
 
+	ValueInfo value;
 	value.currentTransmit.reset();
 	value.finalTransmit.reset();
 	value.type = (NWTypes)type;
 	value.repl = (NWRepl)repl;
 	value.tableoffset = offset;
 	value.valueentindex = -1;
+	ent->values.push_back(value);
 
 	//printf("Added value offset %d type %d repl %d to entity %d\n", offset, type, repl, entindex);
 }
@@ -382,9 +408,9 @@ void EntitySetValueEntIndex(int entindex, unsigned int offset, int newentindex)
 
 	int oldentindex = value.valueentindex;
 
-	std::pair<nwdepend::iterator, nwdepend::iterator> result;
+	std::pair<nwdepend::const_iterator, nwdepend::const_iterator> result;
 	result = NWDependencies.equal_range(oldentindex);
-	for(nwdepend::iterator it = result.first; it != result.second; ++it)
+	for(nwdepend::const_iterator it = result.first; it != result.second; ++it)
 	{
 		if( it->second == ent )
 		{
