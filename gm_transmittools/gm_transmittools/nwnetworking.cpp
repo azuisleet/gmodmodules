@@ -200,11 +200,11 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, int &bits, Packet &packet)
 	ItemCount count;
 	entitemcount::iterator iter = packet.itemcount.find(ent);
 
-	// added this entity to the packet best case is 16 ent + 1 parity + 8 table + 8 num + 16 best case (49)
+	// added this entity to the packet best case is 32 ent + 8 num + 16 best case (56)
 	if(iter == packet.itemcount.end())
 	{
 		// we can't fit the ent and a best case
-		if(bits < 49)
+		if(bits < 56)
 		{
 			return false;
 		}
@@ -214,14 +214,12 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, int &bits, Packet &packet)
 		else
 			packet.write.WriteShort(ent->entindex);
 
-//		packet.write.WriteOneBit(entityParity[ent->entindex]);
-//		packet.write.WriteChar(ent->tableid);
-//		packet.write.WriteLong(ResolveEHandleForEntity(ent->entindex));
+		packet.write.WriteLong(ResolveEHandleForEntity(ent->entindex));
 
 		count.offset = packet.write.m_iCurBit;
 		count.count = 0;
 		packet.write.WriteChar(0);
-		bits -= 49;
+		bits -= 40;
 
 		bool success = NWTryPack(ent, value, bits, packet, count);
 		packet.itemcount.insert(entitemcount::value_type(ent, count));
@@ -264,12 +262,12 @@ bool NWTickEntity(EntInfo *ent, int &bits)
 		PlayerVector sendvec = value.finalTransmit ^ value.currentTransmit;
 		packetmap::iterator packetiter = Packets.find(sendvec);
 
-		//best case is 16 ent + 1 parity + 8 table + 8 num + 16 best case (49)
-		// a new packet is created, but we have < (16 umsg + 16 ent + 1 parity + 8 table + 8 num + 16 best case) 65
+		//best case is 32 ent + 8 num + 16 best case (56)
+		// a new packet is created, but we have < (16 umsg + 32 ent + 8 num + 16 best case) 72
 		if(packetiter == Packets.end())
 		{
 			// we can't fit a new packet
-			if(bits < 65)
+			if(bits < 72)
 			{
 				complete = false;
 				continue;
