@@ -1,6 +1,6 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gm_transmittools", "gm_transmittools\gm_transmittools.vcproj", "{21E1974A-66D3-494C-AB27-0888D910662C}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gm_transmittools", "gm_transmittools\gm_transmittools.vcxproj", "{21E1974A-66D3-494C-AB27-0888D910662C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

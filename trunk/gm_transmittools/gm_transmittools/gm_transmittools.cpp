@@ -17,6 +17,7 @@ int umsgStringTableOffset;
 //int tickinterval;
 
 std::bitset<MAX_EDICTS> sentEnts[MAX_GMOD_PLAYERS];
+std::bitset<MAX_EDICTS> entityParity;
 
 IServerUnknown *LookupEntity(int index)
 {
@@ -96,60 +97,11 @@ int ResolveEHandleForEntity(ILuaObject *luaobject)
 	}
 }
 
-DWORD* GetInterfaceFuncPtr(DWORD* pDeviceInterface, const char *fmt, ...) 
-{   
-	va_list	va_alist;
-	char	buf[32];
 
-	memset(buf, 0, sizeof(buf));
-
-	va_start(va_alist, fmt);
-	_vsnprintf_s(buf, sizeof(buf), fmt, va_alist);
-	va_end(va_alist);
-
-	char *op = (char *)strtoul(buf, NULL, 16);
-
-	while(1)
-	{
-		if(*op == '\xFF')
-		{
-			op++;
-
-			if(*op == '\xA0')
-			{
-				int iIndex = 0;
-
-				op++;
-				memcpy(&iIndex, op, (4));
-				return (DWORD*)(*pDeviceInterface + iIndex  );
-			}
-
-			op++;
-			break;
-		}
-		op++;
-	}
-
-	if (((int)*op)  < 0)
-		return (DWORD*)*pDeviceInterface;
-
-	return (DWORD*)(*pDeviceInterface + ((int)*op ) ); //Credits: as2 (G-D) 
-}
-
-class CDetour
+DEFVFUNC_( origCheckTransmit, void, ( IServerGameEnts *gameents, CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict ) );
+void VFUNC newCheckTransmit( IServerGameEnts *gameents, CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict )
 {
-public:
-	void CheckTransmit(CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict);
-	static void (CDetour::* CheckTrampoline)(CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict);
-
-};
-typedef void (__thiscall CDetour::* *checktransmit_t)(CCheckTransmitInfo *, const unsigned short *, int);
-
-void (CDetour::* CDetour::CheckTrampoline)(CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict) = 0;
-
-void CDetour::CheckTransmit(CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdict)
-{
-	(this->*CheckTrampoline)(pInfo, pEdictIndices, nEdict);
+	origCheckTransmit( gameents, pInfo, pEdictIndices, nEdict );
 
 	edict_t *pBaseEdict = engine->PEntityOfEntIndex( 0 );
 	int client = pInfo->m_pClientEnt - pBaseEdict;
@@ -167,6 +119,7 @@ void CDetour::CheckTransmit(CCheckTransmitInfo *pInfo, const unsigned short *pEd
 			EntityTransmittedToPlayer(iEdict, client);
 		}
 	}
+
 }
 
 LUA_FUNCTION(DebugDump)
@@ -215,8 +168,8 @@ LUA_FUNCTION(DebugVis)
 	int entindex = gLua->GetInteger(1);
 	int playerindex = gLua->GetInteger(2);
 
-	sentEnts[playerindex-1][entindex] = true;
 	printf("Entity %d transmitted to player %d (%d)\n", entindex, playerindex, (sentEnts[playerindex-1][entindex] == true));
+	sentEnts[playerindex-1][entindex] = true;
 
 	EntityTransmittedToPlayer(entindex, playerindex);
 
@@ -295,7 +248,10 @@ LUA_FUNCTION(tt_EntityDestroyed)
 	ILuaInterface *gLua = Lua();
 	gLua->CheckType(1, GLua::TYPE_NUMBER);
 
-	EntityDestroyed(gLua->GetInteger(1));
+	int reference = EntityDestroyed(gLua->GetInteger(1));
+
+	if(reference >= 0)
+		gLua->FreeReference(reference);
 
 	return 0;
 }
@@ -387,21 +343,9 @@ int Start(lua_State *L)
 	networkstringtable = (INetworkStringTableContainer *)engineFactory(INTERFACENAME_NETWORKSTRINGTABLESERVER, NULL);
 	gameents = (IServerGameEnts *)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
 
-
 	g_pLua = gLua;
 
-	DWORD* pFunct = GetInterfaceFuncPtr((DWORD*)gameents,"%p",&IServerGameEnts::CheckTransmit);
-	pFunct = (DWORD*)pFunct[0];
-
-	CDetour::CheckTrampoline = *(checktransmit_t)&pFunct;
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-
-	DetourAttach(&(PVOID&)CDetour::CheckTrampoline,
-		(PVOID)(&(PVOID&)CDetour::CheckTransmit));
-
-	DetourTransactionCommit();
+	HOOKVFUNC( gameents, 6, origCheckTransmit, newCheckTransmit );
 
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
 
@@ -466,13 +410,7 @@ int Close(lua_State *L)
 {
 	ILuaInterface *gLua = Lua();
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-
-	DetourDetach(&(PVOID&)CDetour::CheckTrampoline,
-		(PVOID)(&(PVOID&)CDetour::CheckTransmit));
-
-	DetourTransactionCommit();
+	UNHOOKVFUNC( gameents, 6, origCheckTransmit );
 
 	return 0;
 }
