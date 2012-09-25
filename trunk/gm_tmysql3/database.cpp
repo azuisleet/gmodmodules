@@ -21,7 +21,7 @@ bool Database::Initialize( CUtlString& error )
 
 		if ( !Connect( mysql, error ) )
 		{
-			return false;	
+			return false;
 		}
 
 		m_vecAvailableConnections.AddToTail( mysql );
@@ -159,6 +159,7 @@ void Database::DoExecute( Query* query )
 		if ( ping > 0 )
 		{
 			mysql_close( pMYSQL );
+			mysql_init( pMYSQL );
 			if(mysql_real_connect( pMYSQL, m_strHost, m_strUser, m_strPass, m_strDB, m_iPort, NULL, 0 ))
 			{
 				err = mysql_real_query( pMYSQL, strquery, len );

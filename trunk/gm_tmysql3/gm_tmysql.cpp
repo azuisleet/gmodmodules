@@ -101,11 +101,11 @@ LUA_FUNCTION( initialize )
 		char buffer[1024];
 
 		Q_snprintf( buffer, sizeof(buffer), "Error connecting to DB: %s", error.Get() );
-		gLua->Msg( "%s\n", buffer );
 
 		gLua->Push( false );
 		gLua->Push( buffer );
 
+		delete mysqldb;
 		return 2;
 	}
 
@@ -235,7 +235,9 @@ Database* GetMySQL( ILuaInterface* gLua )
 	if (!mysql) return NULL;
 
 	Database* pData = (Database*)mysql->GetMemberUserDataLite( USERDATA_PTR );
+#ifndef GMOD_BETA
 	gLua->Pop(); // BUG: GetMemberUserDataLite does not balance
+#endif
 
 	mysql->UnReference();
 	return pData;
@@ -330,14 +332,20 @@ bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* quer
 	}
 
 	int rowid = 1;
+#ifndef GMOD_BETA
 	ILuaObject* resultrow = gLua->NewTemporaryObject();
+#endif
 
 	while ( row != NULL )
 	{
+#ifdef GMOD_BETA
+		ILuaObject* resultrow = gLua->GetNewTable();
+#else
 		// black magic warning: we use a temp and assign it so that we avoid consuming all the temp objects and causing horrible disasters
 		gLua->NewTable();
 		resultrow->SetFromStack(-1);
 		gLua->Pop();
+#endif
 
 		for ( int i = 0; i < field_count; i++ )
 		{
