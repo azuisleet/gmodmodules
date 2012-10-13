@@ -117,7 +117,6 @@ private:
 
 	CUtlVectorMT<CUtlVector<Query*> >						m_vecCompleted;
 	CUtlVectorMT<CUtlVector<MYSQL*> >						m_vecAvailableConnections;
-	CUtlVector<MYSQL*>										m_vecAllConnections;
 
 	CUtlString		m_strHost;
 	CUtlString		m_strUser;

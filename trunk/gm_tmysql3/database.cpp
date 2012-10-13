@@ -25,7 +25,6 @@ bool Database::Initialize( CUtlString& error )
 		}
 
 		m_vecAvailableConnections.AddToTail( mysql );
-		m_vecAllConnections.AddToTail( mysql );
 	}
 
 	m_pThreadPool = CreateThreadPool();
@@ -76,12 +75,11 @@ void Database::Shutdown( void )
 		m_pThreadPool = NULL;
 	}
 
-	FOR_EACH_VEC( m_vecAllConnections, i )
+	FOR_EACH_VEC( m_vecAvailableConnections, i )
 	{
-		mysql_close( m_vecAllConnections[i] );
+		mysql_close( m_vecAvailableConnections[i] );
 	}
 
-	m_vecAllConnections.Purge();
 	m_vecAvailableConnections.Purge();
 	m_vecCompleted.Purge();
 }
@@ -98,11 +96,11 @@ char* Database::Escape( const char* query )
 
 bool Database::SetCharacterSet( const char* charset, CUtlString& error )
 {
-	FOR_EACH_VEC( m_vecAllConnections, i )
+	FOR_EACH_VEC( m_vecAvailableConnections, i )
 	{
-		if ( mysql_set_character_set( m_vecAllConnections[i], charset ) > 0 )
+		if ( mysql_set_character_set( m_vecAvailableConnections[i], charset ) > 0 )
 		{
-			error.Set( mysql_error( m_vecAllConnections[i] ) );
+			error.Set( mysql_error( m_vecAvailableConnections[i] ) );
 			return false;
 		}
 	}
@@ -159,7 +157,7 @@ void Database::DoExecute( Query* query )
 		if ( ping > 0 )
 		{
 			mysql_close( pMYSQL );
-			mysql_init( pMYSQL );
+			pMYSQL = mysql_init( pMYSQL );
 			if(mysql_real_connect( pMYSQL, m_strHost, m_strUser, m_strPass, m_strDB, m_iPort, NULL, 0 ))
 			{
 				err = mysql_real_query( pMYSQL, strquery, len );
