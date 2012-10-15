@@ -156,24 +156,37 @@ void Database::DoExecute( Query* query )
 		int ping = mysql_ping( pMYSQL );
 		if ( ping > 0 )
 		{
+			AUTO_LOCK_FM( m_vecAvailableConnections );
+
 			mysql_close( pMYSQL );
-			pMYSQL = mysql_init( pMYSQL );
+			pMYSQL = mysql_init( NULL );
 			if(mysql_real_connect( pMYSQL, m_strHost, m_strUser, m_strPass, m_strDB, m_iPort, NULL, 0 ))
 			{
 				err = mysql_real_query( pMYSQL, strquery, len );
-			} else {
-				err = 1;
+
+				if ( err > 0 )
+				{
+					query->SetError( mysql_error( pMYSQL ) );
+					query->SetStatus( QUERY_FAIL );
+					query->SetResult( NULL );
+				}
+			} 
+			else
+			{
+				query->SetError( "Unable to reconnect to database" );
+				query->SetStatus( QUERY_FAIL );
+				query->SetResult( NULL );
 			}
+		}
+		else
+		{
+			query->SetError( mysql_error( pMYSQL ) );
+			query->SetStatus( QUERY_FAIL );
+			query->SetResult( NULL );
 		}
 	}
 
-	if ( err > 0 )
-	{
-		query->SetError( mysql_error( pMYSQL ) );
-		query->SetStatus( QUERY_FAIL );
-		query->SetResult( NULL );
-	}
-	else
+	if ( err == 0 )
 	{
 		query->SetStatus( QUERY_SUCCESS );
 		query->SetResult( mysql_store_result( pMYSQL ) );
