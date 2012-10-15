@@ -1,5 +1,5 @@
 #define _RETAIL
-#include "GMLuaModule.h"
+#include <ILuaModuleManager.h>
 #include "gm_bass.h"
 
 #include "memdbgon.h"
@@ -8,7 +8,7 @@
 #define TYPE_CHANNEL 6667
 
 #define CHANNELFROMLUA() ILuaInterface *gLua = Lua(); \
-							if (gLua->GetType(1) != TYPE_CHANNEL) gLua->TypeError(META_CHANNEL, 1); \
+							if (gLua->GetType(1) != TYPE_CHANNEL) gLua->Error("Bad Channel"); \
 							DWORD handle = (DWORD)gLua->GetUserData(1);
 
 #define TIME2LUA(X) 	QWORD len = X(handle, BASS_POS_BYTE); \
@@ -322,18 +322,11 @@ int Start( lua_State* L )
 {
 	ILuaInterface *gLua = Lua();
 	
-	HWND gmode = FindWindowA("Valve001", "Garry's Mod");
-	if(!gmode)
-	{
-		gLua->Error("Unable to find Garry's Mod window for BASS library");
-		return 0;
-	}
-
+	HWND gmode = FindWindowA("Valve001", "Garry's Mod 13");
 	BOOL bassInit = BASS_Init(-1, 44100, BASS_DEVICE_3D, gmode, NULL);
 	if(!bassInit)
 	{
 		int error = BASS_ErrorGetCode();
-		gLua->Msg("BASS Init failed, error code %d\n", error);
 		gLua->Error("BASS Init error");
 		return 0;
 	}

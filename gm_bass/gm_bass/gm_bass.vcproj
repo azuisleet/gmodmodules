@@ -95,7 +95,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\common;..\bass\c"
+				AdditionalIncludeDirectories="&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;;&quot;..\..\..\blackawps-glua-modules\backwards_headers&quot;;..\bass\c"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_BASS_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -138,7 +138,84 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="bass.lib tags.lib tier0.lib tier1.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\bass\c"
+				AdditionalLibraryDirectories="..\bass\c;&quot;D:\hl2sdk-ob-valve\lib\public&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release - GM13|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;D:\hl2sdk-ob-valve\&quot;;&quot;D:\hl2sdk-ob-valve\public&quot;;&quot;D:\hl2sdk-ob-valve\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve\game&quot;;&quot;D:\hl2sdk-ob-valve\game\client&quot;;&quot;D:\hl2sdk-ob-valve\game\shared&quot;;&quot;D:\hl2sdk-ob-valve\game\server&quot;;&quot;..\..\..\blackawps-glua-modules\backwards_headers&quot;;..\bass\c"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GM_BASS_EXPORTS"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="bass.lib tags.lib tier0.lib tier1.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\bass\c;&quot;D:\hl2sdk-ob-valve\lib\public&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -209,20 +286,52 @@
 			<Filter
 				Name="common"
 				>
+			</Filter>
+			<Filter
+				Name="backwards_headers"
+				>
 				<File
-					RelativePath="..\common\GMLuaModule.h"
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\common\ILuaInterface.h"
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\ILuaModuleManager.h"
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\common\ILuaObject.h"
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaObject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaObject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaTable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\ILuaUserData.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\Interface.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\LuaBase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\blackawps-glua-modules\backwards_headers\Types.h"
 					>
 				</File>
 			</Filter>
