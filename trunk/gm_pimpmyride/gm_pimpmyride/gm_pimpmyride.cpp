@@ -26,8 +26,6 @@
 
 #include "gm_pimpmyride.h"
 
-#include "GMLuaModule.h"
-
 IVEngineServer *engine = NULL;
 
 GMOD_MODULE(Start, Close)
