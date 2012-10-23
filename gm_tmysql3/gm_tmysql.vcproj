@@ -562,7 +562,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/DGMOD_BETA"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;"
+				AdditionalIncludeDirectories="&quot;E:\mysql-5.1.48-win32\include&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier1&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\tier0&quot;;&quot;D:\hl2sdk-ob-valve-321078110c97\public\vstdlib&quot;;&quot;..\..\blackawps-glua-modules\backwards_headers&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;GM_TMYSQL_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -917,6 +917,14 @@
 				RelativePath=".\common\GMLuaModule.h"
 				>
 				<FileConfiguration
+					Name="Debug - GM13|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release - GM13|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -929,6 +937,14 @@
 				RelativePath=".\common\ILuaInterface.h"
 				>
 				<FileConfiguration
+					Name="Debug - GM13|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release - GM13|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -940,6 +956,14 @@
 			<File
 				RelativePath=".\common\ILuaObject.h"
 				>
+				<FileConfiguration
+					Name="Debug - GM13|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release - GM13|Win32"
 					ExcludedFromBuild="true"
@@ -982,7 +1006,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1018,7 +1041,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1061,7 +1083,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1097,7 +1118,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1140,7 +1160,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1176,7 +1195,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1219,7 +1237,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1262,7 +1279,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1305,7 +1321,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1348,7 +1363,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
@@ -1391,7 +1405,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug - GM13|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
