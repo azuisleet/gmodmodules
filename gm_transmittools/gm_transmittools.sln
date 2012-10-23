@@ -4,16 +4,28 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gm_transmittools", "gm_tran
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug - GM13|Win32 = Debug - GM13|Win32
+		Debug - GM13|x64 = Debug - GM13|x64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Release - GM13|Win32 = Release - GM13|Win32
+		Release - GM13|x64 = Release - GM13|x64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug - GM13|Win32.ActiveCfg = Debug - GM13|Win32
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug - GM13|Win32.Build.0 = Debug - GM13|Win32
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug - GM13|x64.ActiveCfg = Debug - GM13|x64
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug - GM13|x64.Build.0 = Debug - GM13|x64
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug|Win32.ActiveCfg = Debug|Win32
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug|Win32.Build.0 = Debug|Win32
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug|x64.ActiveCfg = Debug|x64
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Debug|x64.Build.0 = Debug|x64
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Release - GM13|Win32.ActiveCfg = Release - GM13|Win32
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Release - GM13|Win32.Build.0 = Release - GM13|Win32
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Release - GM13|x64.ActiveCfg = Release - GM13|x64
+		{21E1974A-66D3-494C-AB27-0888D910662C}.Release - GM13|x64.Build.0 = Release - GM13|x64
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Release|Win32.ActiveCfg = Release|Win32
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Release|Win32.Build.0 = Release|Win32
 		{21E1974A-66D3-494C-AB27-0888D910662C}.Release|x64.ActiveCfg = Release|x64

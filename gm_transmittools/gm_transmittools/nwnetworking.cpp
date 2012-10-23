@@ -301,10 +301,15 @@ void DispatchPackets()
 
 		CRecipientFromBitset filter(vec);
 
+#ifdef GMOD13
+		bf_write *bf_write = engine->UserMessageBegin(&filter, 39); // LuaUserMessage
+		bf_write->WriteString("N");
+#else
 		bf_write *bf_write = engine->UserMessageBegin(&filter, 34); // LuaUserMessage
 
 		bf_write->WriteShort(umsgStringTableOffset);
 		bf_write->WriteOneBit(0); // important bit!
+#endif
 
 		unsigned char *packetdata = packet.write.GetBasePointer(); 
 		//printf("packet bytes written: %d\n", packet.write.GetNumBytesWritten());
@@ -359,13 +364,12 @@ int NWUmsgTest(lua_State *)
 
 	CRecipientFromBitset filter(vec);
 
-	for(int i = 25; i < 40; i++)
+	for(int i = 25; i < 60; i++)
 	{
 		Msg( " %d \n ", i );
 
-		bf_write *bf_write = engine->UserMessageBegin(&filter, i); // LuaUserMessage
-		bf_write->WriteShort(umsgStringTableOffset); //umsgStringTableOffset);
-		bf_write->WriteOneBit(0); // important bit!
+		bf_write *bf_write = engine->UserMessageBegin(&filter, 39); // LuaUserMessage
+		bf_write->WriteString("N"); //umsgStringTableOffset);
 
 		int pos = bf_write->m_iCurBit;
 		bf_write->WriteChar(64);
