@@ -5,7 +5,11 @@
 
 #define MAX_GMOD_PLAYERS 128
 
+#ifndef GMOD13
 #include "GMLuaModule.h"
+#else
+#include <ILuaModuleManager.h>
+#endif
 extern ILuaInterface *g_pLua;
 
 #include <vector>
@@ -25,6 +29,11 @@ extern ILuaInterface *g_pLua;
 
 #include <windows.h>
 #include "vfnhook.h"
+
+#ifdef GMOD13
+#undef MAX_EDICT_BITS
+#define	MAX_EDICT_BITS 13 // GMOD 13???
+#endif
 
 int ResolveEntInfoOwner(EntInfo *ent);
 int ResolveEHandleForEntity(int index);

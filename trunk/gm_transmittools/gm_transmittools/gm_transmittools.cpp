@@ -1,8 +1,8 @@
 #include "gm_transmittools.h"
 
 #ifdef GMOD13
-#define INTERFACEVERSION_VENGINESERVERGMOD	"VEngineServerGMod021"
-#define INTERFACEVERSION_SERVERGAMEDLLGMOD "ServerGameDLL_GMOD_007"
+#define INTERFACEVERSION_VENGINESERVERGMOD	"VEngineServer021"
+#define INTERFACEVERSION_SERVERGAMEDLLGMOD "ServerGameDLL009"
 #endif
 
 GMOD_MODULE(Start, Close)
@@ -347,11 +347,13 @@ int Start(lua_State *L)
 
 	HOOKVFUNC( gameents, 6, origCheckTransmit, newCheckTransmit );
 
+#ifndef GMOD13
 	INetworkStringTable *table = networkstringtable->FindTable("LuaStrings");
 
 	// we need to scan for the LuaStrings table..
 	if(table == NULL)
 	{
+
 		gLua->RunString("gm_transmittools", "", "umsg.PoolString(\"N\")", true, true);
 
 		for(int i = 0; i < networkstringtable->GetNumTables(); i++)
@@ -369,6 +371,9 @@ int Start(lua_State *L)
 			}
 		}
 	}
+#else
+	INetworkStringTable *table = networkstringtable->FindTable("networkstring");
+#endif
 
 	if(table == NULL)
 	{
