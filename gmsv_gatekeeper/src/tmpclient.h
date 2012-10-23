@@ -12,7 +12,7 @@ public:
 	virtual	~IClient() {}
 
 	// fires a game event
-	virtual void	FireGameEvent( IGameEvent *event ) = 0;
+	//virtual void	FireGameEvent( IGameEvent *event ) = 0;
 
 	// connect client
 	virtual void	Connect(const char * szName, int nUserID, INetChannel *pNetChannel, bool bFakePlayer) = 0;

@@ -1,7 +1,5 @@
 // GateKeeper V4.2
 // ComWalk, VoiDeD, Chrisaster
-#define GMOD_BETA
-
 #ifdef WIN32
 	#define VTABLE_OFFSET 0
 	#define ENGINE_LIB "engine.dll"
@@ -37,7 +35,11 @@
 #include "tmpserver.h"
 #include "tmpclient.h"
 
+#ifndef GMOD13
 #include "common/GMLuaModule.h"
+#else
+#include <ILuaModuleManager.h>
+#endif
 
 GMOD_MODULE( Load, Unload );
 
@@ -61,13 +63,13 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 	if ( debugOutputEnabled )
 	{
 		// print network and authentication protocol versions
-		gLua->Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n", netProt, authProt );
+		Msg( "[GateKeeper] ConnectClient( netProt: %d, authProt: %d )\n", netProt, authProt );
 
 		// print client certificate
-		gLua->Msg( "[GateKeeper] Printing client (%s) certificate..\n", user );
+		Msg( "[GateKeeper] Printing client (%s) certificate..\n", user );
 		for ( int i = 0; i < certLen; i++ )
-			gLua->Msg( "%02X ", (unsigned char)cert[i] );
-		gLua->Msg( "\n" );
+			Msg( "%02X ", (unsigned char)cert[i] );
+		Msg( "\n" );
 	}
 
 	int origNetProt = netProt;
@@ -78,7 +80,7 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 		netProt = gk_force_protocol.GetInt();
 
 		if ( debugOutputEnabled )
-			gLua->Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
+			Msg( "[GateKeeper] Forcing network protocol to %d!\n", netProt );
 	}
 
 	switch ( netProt )
@@ -123,7 +125,7 @@ void VFUNC newConnectClient( CBaseServer *srv, netadr_t &netinfo, int netProt, i
 	}
 
 	if ( debugOutputEnabled )
-		gLua->Msg( "[GateKeeper] Certificate SteamID: %llu\n", rawSteamID );
+		Msg( "[GateKeeper] Certificate SteamID: %llu\n", rawSteamID );
 
 	return origConnectClient( srv, netinfo, origNetProt, chal, clientchal, authProt, user, pass, cert, certLen );
 }
@@ -200,7 +202,7 @@ bool VFUNC newCheckPassword( CBaseServer *srv, netadr_t &netinfo, const char *pa
 					}
 					else if ( !reason->isNil() )
 					{
-						gLua->ErrorNoHalt( "Second return value of PlayerPasswordAuth must be nil or a string!\n" );
+						gLua->Error( "Second return value of PlayerPasswordAuth must be nil or a string!\n" );
 					}
 				}
 
@@ -211,7 +213,7 @@ bool VFUNC newCheckPassword( CBaseServer *srv, netadr_t &netinfo, const char *pa
 	else
 	{
 		if ( !ret->isNil() )
-			gLua->ErrorNoHalt( "PlayerPasswordAuth hook must return a boolean, string, or table value!\n" );
+			gLua->Error( "PlayerPasswordAuth hook must return a boolean, string, or table value!\n" );
 		
 		ret->UnReference();
 	}
