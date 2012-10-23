@@ -308,7 +308,11 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 		gLua->Push( query->GetError() );
 	}
 
-	gLua->Call(args);
+	if ( gLua->PCall( args ) != 0 )
+	{
+		const char* err = gLua->GetString();
+		gLua->ErrorNoHalt("tmysql callback failure: %s\n", err);
+	}
 }
 
 bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* query )
