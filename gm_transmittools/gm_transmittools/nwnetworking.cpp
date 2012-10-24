@@ -182,7 +182,9 @@ bool NWTryPack(EntInfo *ent, const ValueInfo &value, int &bits, Packet &packet, 
 		packet.write.WriteBitAngles(QAngle(1,1,1));
 		break;
 	case NWTYPE_STRING:
+#ifndef GMOD13
 		packet.write.WriteOneBit(0); // fuck pooling
+#endif
 		if(luavalue != NULL && luavalue->isString() && luavalue->GetString() != NULL)
 			packet.write.WriteString(luavalue->GetString());
 		else
