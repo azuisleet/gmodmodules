@@ -7,7 +7,7 @@ Delphi header and sample by Chris Troesken
 
 Public domain. No warranty.
 
-Version 15
+Version 17
 
 Purpose:
 --------
@@ -66,6 +66,17 @@ Support:
 
 Version History:
 ---------------
+VERSION 17:
+  - All available tag types will be checked for each requested item.
+  - Support for ID3v2.4 TDRC frame.
+  - TAGS_GetVersion now gives the version number (TAGS_VERSION) in HIBYTE and build number in LOBYTE.
+
+VERSION 16:
+  - Disc number tag.
+  - Total track count added to track number tag for OGG/MP4.
+  - Support for ID3v2.4 "unsynchronisation".
+  - Version resource changed to "version.build" form.
+
 VERSION 15:
   - UTF-8 text encoding option.
   - Subtitle and album artist tags.
@@ -127,7 +138,7 @@ Function reference:
 	Returns tags.dll version.
   
   Return value:
-    Current version. Really. It'll just increment with each new release.
+    Current version (in HIBYTE) and build (in LOBYTE).
   
   ---------------
   
@@ -162,11 +173,12 @@ Function reference:
          "%GNRE"  - song genre;
          "%YEAR"  - song/album year;
          "%CMNT"  - comment;
-         "%TRCK"  - track number;
+         "%TRCK"  - track number (may include total track count "track/total");
          "%COMP"  - composer;
          "%COPY"  - copyright;
          "%SUBT"  - subtitle;
          "%AART"  - album artist;
+         "%DISC"  - disc number (may include total disc count "disc/total");
        - expression:
          "%IFV1(x,a)" - if x is not empty, then %IFV1() evaluates to a, 
                         or to an empty string otherwise;
