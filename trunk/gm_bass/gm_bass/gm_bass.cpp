@@ -5,7 +5,7 @@
 #include "memdbgon.h"
 
 #define META_CHANNEL "BASSChannel"
-#define TYPE_CHANNEL 6667
+#define TYPE_CHANNEL 55
 
 #define CHANNELFROMLUA() ILuaInterface *gLua = Lua(); \
 							if (gLua->GetType(1) != TYPE_CHANNEL) gLua->Error("Bad Channel"); \
@@ -236,7 +236,7 @@ LUA_FUNCTION(bass_streamfile)
 	DWORD handle = BASS_StreamCreateFile(false, buff, 0, 0, BASS_SAMPLE_MONO | BASS_SAMPLE_3D);
 
 	ILuaObject* Channel = gLua->GetMetaTable(META_CHANNEL, TYPE_CHANNEL);
-	gLua->PushUserData(Channel, (void *)handle);
+	gLua->PushUserData(Channel, (void *)handle, TYPE_CHANNEL);
 	Channel->UnReference();
 	return 1;
 }
@@ -298,7 +298,7 @@ LUA_FUNCTION(poll)
 			BASS_ChannelSetAttribute(qres->handle, BASS_ATTRIB_VOL, 1);
 
 			ILuaObject* Channel = gLua->GetMetaTable(META_CHANNEL, TYPE_CHANNEL);
-			gLua->PushUserData(Channel, (void *)qres->handle);
+			gLua->PushUserData(Channel, (void *)qres->handle, TYPE_CHANNEL);
 			Channel->UnReference();
 		} else {
 			gLua->Push(false);
