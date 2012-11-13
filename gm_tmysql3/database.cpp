@@ -1,9 +1,9 @@
 #include "gm_tmysql.h"
 
 Database::Database( const char* host, const char* user, const char* pass, const char* db, int port ) :
-	m_strHost(host), m_strUser(user), m_strPass(pass), m_strDB(db), m_iPort(port),
-	m_pThreadPool(NULL)
+	m_strHost(host), m_strUser(user), m_strPass(pass), m_strDB(db), m_iPort(port)
 {
+	work.reset(new asio::io_service::work(io_service));
 }
 
 Database::~Database( void )
@@ -11,7 +11,7 @@ Database::~Database( void )
 
 }
 
-bool Database::Initialize( CUtlString& error )
+bool Database::Initialize( std::string& error )
 {
 	static my_bool bTrue = true;
 
@@ -24,69 +24,65 @@ bool Database::Initialize( CUtlString& error )
 			return false;
 		}
 
-		m_vecAvailableConnections.AddToTail( mysql );
+		m_vecAvailableConnections.push_back( mysql );
 	}
 
-	m_pThreadPool = CreateThreadPool();
-
-	ThreadPoolStartParams_t params;
-	params.nThreads = NUM_THREADS_DEFAULT;
-
-	if ( !m_pThreadPool->Start( params ) )
+	for( unsigned int i = 0; i < NUM_THREADS_DEFAULT; ++i )
 	{
-		SafeRelease( m_pThreadPool );
-		error.Set( "Unable to start thread pool" );
-
-		return false;
+		thread_group.push_back(std::thread(
+			[&]()
+			{
+				io_service.run();
+			}));
 	}
 
 	return true;
 }
 
-bool Database::Connect( MYSQL* mysql, CUtlString& error )
+bool Database::Connect( MYSQL* mysql, std::string& error )
 {
-	if ( !mysql_real_connect( mysql, m_strHost, m_strUser, m_strPass, m_strDB, m_iPort, NULL, 0 ) )
+	if ( !mysql_real_connect( mysql, m_strHost.c_str(), m_strUser.c_str(), m_strPass.c_str(), m_strDB.c_str(), m_iPort, NULL, 0 ) )
 	{
-		error.Set( mysql_error( mysql ) );
+		error.assign( mysql_error( mysql ) );
 		return false;
 	}
 
 	return true;
-}
-
-bool Database::IsSafeToShutdown( void )
-{
-	bool completedDispatch;
-	{
-		AUTO_LOCK_FM( m_vecCompleted );
-		completedDispatch = m_vecCompleted.Count() == 0;
-	}
-
-	return completedDispatch && m_pThreadPool->GetJobCount() == 0 && m_pThreadPool->NumIdleThreads() == m_pThreadPool->NumThreads();
 }
 
 void Database::Shutdown( void )
 {
-	if ( m_pThreadPool != NULL )
-	{
-		m_pThreadPool->Stop();
+	work.reset();
 
-		DestroyThreadPool( m_pThreadPool );
-		m_pThreadPool = NULL;
+	for( auto iter = thread_group.begin(); iter != thread_group.end(); ++iter )
+	{
+		iter->join();
 	}
 
-	FOR_EACH_VEC( m_vecAvailableConnections, i )
+	assert(io_service.stopped());
+}
+
+std::size_t Database::RunShutdownWork( void )
+{
+	io_service.reset();
+	return io_service.run();
+}
+
+void Database::Release( void )
+{
+	assert(io_service.stopped());
+
+	for( auto iter = m_vecAvailableConnections.begin(); iter != m_vecAvailableConnections.end(); ++iter )
 	{
-		mysql_close( m_vecAvailableConnections[i] );
+		mysql_close( *iter );
 	}
 
-	m_vecAvailableConnections.Purge();
-	m_vecCompleted.Purge();
+	m_vecAvailableConnections.clear();
 }
 
 char* Database::Escape( const char* query )
 {
-	size_t len = Q_strlen( query );
+	size_t len = strlen( query );
 	char* escaped = new char[len*2+1];
 
 	mysql_escape_string( escaped, query, len );
@@ -94,13 +90,13 @@ char* Database::Escape( const char* query )
 	return escaped;
 }
 
-bool Database::SetCharacterSet( const char* charset, CUtlString& error )
+bool Database::SetCharacterSet( const char* charset, std::string& error )
 {
-	FOR_EACH_VEC( m_vecAvailableConnections, i )
+	for( auto iter = m_vecAvailableConnections.begin(); iter != m_vecAvailableConnections.end(); ++iter )
 	{
-		if ( mysql_set_character_set( m_vecAvailableConnections[i], charset ) > 0 )
+		if ( mysql_set_character_set( *iter, charset ) > 0 )
 		{
-			error.Set( mysql_error( m_vecAvailableConnections[i] ) );
+			error.assign( mysql_error( *iter ) );
 			return false;
 		}
 	}
@@ -117,36 +113,24 @@ void Database::QueueQuery( const char* query, int callback, int flags, int callb
 
 void Database::QueueQuery( Query* query )
 {
-	CJob* job = m_pThreadPool->QueueCall( this, &Database::DoExecute, query );
-
-	SafeRelease( job );
+	io_service.post(std::bind(&Database::DoExecute, this, query));
 }
 
-
-
-void Database::YieldPostCompleted( Query* query )
+Query* Database::GetCompletedQueries()
 {
-	AUTO_LOCK_FM( m_vecCompleted );
+	return m_completedQueries.pop_all();
+}
 
-	m_vecCompleted.AddToTail( query );
+void Database::PushCompleted( Query* query )
+{
+	m_completedQueries.push( query );
 }
 
 void Database::DoExecute( Query* query )
 {
-	MYSQL* pMYSQL;
-	
-	{
-		AUTO_LOCK_FM( m_vecAvailableConnections );
-		Assert( m_vecAvailableConnections.Size() > 0 );
+	MYSQL* pMYSQL = GetAvailableConnection();
 
-		pMYSQL = m_vecAvailableConnections.Head();
-		m_vecAvailableConnections.Remove( 0 );
-
-		Assert( pMYSQL );
-	}
-
-
-	const char* strquery = query->GetQuery();
+	const char* strquery = query->GetQuery().c_str();
 	size_t len = query->GetQueryLength();
 
 	int err = mysql_real_query( pMYSQL, strquery, len );
@@ -156,11 +140,11 @@ void Database::DoExecute( Query* query )
 		int ping = mysql_ping( pMYSQL );
 		if ( ping > 0 )
 		{
-			AUTO_LOCK_FM( m_vecAvailableConnections );
+			std::lock_guard<std::recursive_mutex> guard(m_AvailableMutex);
 
 			mysql_close( pMYSQL );
 			pMYSQL = mysql_init( NULL );
-			if(mysql_real_connect( pMYSQL, m_strHost, m_strUser, m_strPass, m_strDB, m_iPort, NULL, 0 ))
+			if(mysql_real_connect( pMYSQL, m_strHost.c_str(), m_strUser.c_str(), m_strPass.c_str(), m_strDB.c_str(), m_iPort, NULL, 0 ))
 			{
 				err = mysql_real_query( pMYSQL, strquery, len );
 
@@ -197,10 +181,7 @@ void Database::DoExecute( Query* query )
 		}
 	}
 
-	YieldPostCompleted( query );
+	PushCompleted(query);
 
-	{
-		AUTO_LOCK_FM( m_vecAvailableConnections );
-		m_vecAvailableConnections.AddToTail( pMYSQL );
-	}
+	ReturnConnection( pMYSQL );
 }

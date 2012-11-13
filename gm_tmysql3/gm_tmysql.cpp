@@ -10,13 +10,17 @@ LUA_FUNCTION( setcharset );
 LUA_FUNCTION( query );
 LUA_FUNCTION( poll );
 
-void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requireSync );
+void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb );
 bool PopulateTableFromQuery( ILuaInterface* gLua, ILuaObject* table, Query* query );
 void HandleQueryCallback( ILuaInterface* gLua, Query* query );
 Database* GetMySQL( ILuaInterface* gLua );
 
+static bool in_shutdown_mode = false;
+
 int Start(lua_State *L)
 {
+	in_shutdown_mode = false;
+
 	mysql_library_init( 0, NULL, NULL );
 
 	ILuaInterface *gLua = Lua();
@@ -52,15 +56,19 @@ int Close(lua_State *L)
 	ILuaInterface* gLua = Lua();
 	Database* mysqldb = GetMySQL( gLua );
 
+	in_shutdown_mode = true;
+
 	if ( mysqldb )
 	{
-		while ( !mysqldb->IsSafeToShutdown() )
+		mysqldb->Shutdown();
+		DispatchCompletedQueries( gLua, mysqldb );
+
+		while ( mysqldb->RunShutdownWork() )
 		{
-			DispatchCompletedQueries( gLua, mysqldb, true );
-			ThreadSleep( 10 );
+			DispatchCompletedQueries( gLua, mysqldb );
 		}
 
-		mysqldb->Shutdown();
+		mysqldb->Release();
 
 		delete mysqldb;
 	}
@@ -94,16 +102,12 @@ LUA_FUNCTION( initialize )
 
 	Database* mysqldb = new Database( host, user, pass, db, port );
 
-	CUtlString error;
+	std::string error;
 
 	if ( !mysqldb->Initialize( error ) )
 	{
-		char buffer[1024];
-
-		Q_snprintf( buffer, sizeof(buffer), "Error connecting to DB: %s", error.Get() );
-
 		gLua->Push( false );
-		gLua->Push( buffer );
+		gLua->Push( error.c_str() );
 
 		delete mysqldb;
 		return 2;
@@ -168,7 +172,7 @@ LUA_FUNCTION( setcharset )
 
 	const char* set = gLua->GetString( 1 );
 
-	CUtlString error;
+	std::string error;
 	mysqldb->SetCharacterSet( set, error );
 
 	return 0;
@@ -214,7 +218,7 @@ LUA_FUNCTION( poll )
 	if ( !mysqldb )
 		return 0;
 
-	DispatchCompletedQueries( gLua, mysqldb, false );
+	DispatchCompletedQueries( gLua, mysqldb );
 	return 0;
 }
 
@@ -243,35 +247,26 @@ Database* GetMySQL( ILuaInterface* gLua )
 	return pData;
 }
 
-void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb, bool requireSync )
+void DispatchCompletedQueries( ILuaInterface* gLua, Database* mysqldb )
 {
-	CUtlVectorMT<CUtlVector<Query*> >& completed = mysqldb->CompletedQueries();
+	Query* completed = mysqldb->GetCompletedQueries();
 
-	// peek at the size, the query threads will only add to it, so we can do this and not end up locking it for nothing
-	if( !requireSync && completed.Size() <= 0 )
-		return;
-
+	while(completed) 
 	{
-		AUTO_LOCK_FM( completed );
+		Query* query = completed;
 
-		FOR_EACH_VEC( completed, i )
+		if ( query->GetCallback() >= 0 )
 		{
-			Query* query = completed[i];
-
-			if ( query->GetCallback() >= 0 )
-			{
-				HandleQueryCallback( gLua, query );
-			}
-
-			if ( query->GetResult() != NULL )
-			{
-				mysql_free_result( query->GetResult() );
-			}
-
-			delete query;
+			HandleQueryCallback( gLua, query );
 		}
 
-		completed.RemoveAll();
+		if ( query->GetResult() != NULL )
+		{
+			mysql_free_result( query->GetResult() );
+		}
+
+		completed = query->next;
+		delete query;
 	}
 }
 
@@ -305,12 +300,12 @@ void HandleQueryCallback( ILuaInterface* gLua, Query* query )
 	}
 	else
 	{
-		gLua->Push( query->GetError() );
+		gLua->Push( query->GetError().c_str() );
 	}
 
-	if ( gLua->PCall( args ) != 0 )
+	if ( gLua->PCall( args ) != 0 && !in_shutdown_mode)
 	{
-		const char* err = gLua->GetString();
+		const char* err = gLua->GetString(-1);
 		gLua->ErrorNoHalt("tmysql callback failure: %s\n", err);
 	}
 }
