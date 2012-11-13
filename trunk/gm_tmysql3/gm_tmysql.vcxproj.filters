@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{52936d01-b27c-4ba3-ae97-b41da5b3e402}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="backwards_headers">
+      <UniqueIdentifier>{52ae6fc6-d63a-4a2d-b5d9-9a7fcf82e630}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gm_tmysql.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.cpp">
+      <Filter>backwards_headers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.cpp">
+      <Filter>backwards_headers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaObject.cpp">
+      <Filter>backwards_headers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gm_tmysql.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="common\GMLuaModule.h">
+      <Filter>common</Filter>
+    </CustomBuild>
+    <CustomBuild Include="common\ILuaInterface.h">
+      <Filter>common</Filter>
+    </CustomBuild>
+    <CustomBuild Include="common\ILuaObject.h">
+      <Filter>common</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaObject.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaTable.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaUserData.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\Interface.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\LuaBase.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\Types.h">
+      <Filter>backwards_headers</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
