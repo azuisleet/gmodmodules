@@ -6,42 +6,35 @@ project(gm_tmysql)
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-set(CMAKE_SHARED_LIBRARY_SUFFIX ".dll")
+	set(CMAKE_SHARED_LIBRARY_SUFFIX "_win32.dll")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-set(CMAKE_SHARED_LIBRARY_SUFFIX "_darwin.dll")
+	set(CMAKE_SHARED_LIBRARY_SUFFIX "_darwin.dll")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-set(CMAKE_SHARED_LIBRARY_SUFFIX "_linux.dll")
+	set(CMAKE_SHARED_LIBRARY_SUFFIX "_linux.dll")
 endif(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
+add_definitions(-DGMOD_BETA -DNO_SDK -D_LINUX -DBOOST_DATE_TIME_NO_LIB -DBOOST_REGEX_NO_LIB -std=c++0x)
 
-find_path(SDK_DIR notes.txt)
+find_package(Boost 1.44)
 find_path(MYSQL_INCLUDE_DIR NAMES mysql.h)
+find_path(ASIO_INCLUDE_DIR NAMES asio.h)
 
 if(MSVC)
-	link_directories("${SDK_DIR}/lib/public")
-	
 	find_path(MYSQL_LINK_DIR NAMES libmysql.lib)
 else()
-	link_directories("${SDK_DIR}/lib/linux")
-	add_definitions(-D_LINUX -DLINUX -mtune=i686 -march=pentium3 -mmmx -m32 -DVPROF_LEVEL=1 -DSWDS -D_finite=finite -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -Usprintf -Ustrncpy -UPROTECTED_THINGS_ENABLE)
-
 	find_path(MYSQL_LINK_DIR NAMES libmysqlclient.a)
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
 endif()
 
-include_directories("${SDK_DIR}/public" "${SDK_DIR}/public/tier1" "${SDK_DIR}/public/tier0" "${SDK_DIR}/public/vstdlib")
-include_directories("${MYSQL_INCLUDE_DIR}")
+include_directories("${MYSQL_INCLUDE_DIR}" "${ASIO_INCLUDE_DIR}" "common")
 link_directories("${MYSQL_LINK_DIR}")
 
-add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp)
+add_library(gm_tmysql MODULE database.cpp gm_tmysql.cpp ILuaInterface.cpp ILuaModuleManager.cpp ILuaObject.cpp)
 
 
 if(MSVC)
-	target_link_libraries(gm_tmysql tier0 tier1 vstdlib)
-	
 	target_link_libraries(gm_tmysql libmysql)
 else()
-	target_link_libraries(gm_tmysql tier0 vstdlib)
-	target_link_libraries(gm_tmysql ${SDK_DIR}/lib/linux/tier1_i486.a)
-	
-	target_link_libraries(gm_tmysql mysqlclient)
+	target_link_libraries(gm_tmysql mysqlclient.a dl z pthread)
 endif()
