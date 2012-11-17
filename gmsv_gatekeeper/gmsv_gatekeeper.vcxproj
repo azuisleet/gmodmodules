@@ -1,0 +1,386 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release - GM13|Win32">
+      <Configuration>Release - GM13</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C9A05F75-7C2F-4A9B-AE69-EF01C3A37BEB}</ProjectGuid>
+    <RootNamespace>gmsv_gatekeeper</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release - GM13|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release - GM13|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release - GM13|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\SourceSDK\march2009\game\server;C:\SourceSDK\march2009\game\shared;C:\SourceSDK\march2009\common;C:\SourceSDK\march2009\public\tier0;C:\SourceSDK\march2009\public\tier1;C:\SourceSDK\march2009\public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GMSV_gatekeeper_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>tier0.lib;tier1.lib;tier2.lib;tier3.lib;vstdlib.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\SourceSDK\march2009\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(HL2SDKOBVALVE)\public\tier0;$(HL2SDKOBVALVE)\public\tier1;$(HL2SDKOBVALVE)\public;$(HL2SDKOBVALVE)\public\steam;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;GMSV_gatekeeper_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>tier0.lib;tier1.lib;tier2.lib;tier3.lib;vstdlib.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(HL2SDKOBVALVE)\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command />
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release - GM13|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/DGMOD13 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(HL2SDKOBVALVE)\public\tier0;$(HL2SDKOBVALVE)\public\tier1;$(HL2SDKOBVALVE)\public;$(HL2SDKOBVALVE)\public\steam;..\..\blackawps-glua-modules\backwards_headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;GMSV_gatekeeper_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>tier0.lib;tier1.lib;tier2.lib;tier3.lib;vstdlib.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(HL2SDKOBVALVE)\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <OutputFile>$(OutDir)$(TargetName)_win32$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command />
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\csteamid.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\sigscan.cpp" />
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\blackawps-glua-modules\backwards_headers\ILuaObject.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\sigscan.h" />
+    <ClInclude Include="src\tmpclient.h" />
+    <ClInclude Include="src\tmpserver.h" />
+    <ClInclude Include="src\vfnhook.h" />
+    <ClInclude Include="src\common\GMLuaModule.h" />
+    <ClInclude Include="src\common\ILuaInterface.h" />
+    <ClInclude Include="src\common\ILuaModuleManager.h" />
+    <ClInclude Include="src\common\ILuaObject.h" />
+    <ClInclude Include="src\osw\AppsCommon.h" />
+    <ClInclude Include="src\osw\BillingCommon.h" />
+    <ClInclude Include="src\osw\BridgeCommon.h" />
+    <ClInclude Include="src\osw\CCallback.h" />
+    <ClInclude Include="src\osw\CGameID.h" />
+    <ClInclude Include="src\osw\ClientCommon.h" />
+    <ClInclude Include="src\osw\ContentServerCommon.h" />
+    <ClInclude Include="src\osw\CSteamAPIContext.h" />
+    <ClInclude Include="src\osw\CSteamID.h" />
+    <ClInclude Include="src\osw\EAccountType.h" />
+    <ClInclude Include="src\osw\EChatMemberStateChange.h" />
+    <ClInclude Include="src\osw\ELobbyType.h" />
+    <ClInclude Include="src\osw\ENotificationPosition.h" />
+    <ClInclude Include="src\osw\EPersonalQuestion.h" />
+    <ClInclude Include="src\osw\EResult.h" />
+    <ClInclude Include="src\osw\EServerMode.h" />
+    <ClInclude Include="src\osw\ESteamAppUpdateStatsQueryType.h" />
+    <ClInclude Include="src\osw\ESteamBufferMethod.h" />
+    <ClInclude Include="src\osw\ESteamError.h" />
+    <ClInclude Include="src\osw\ESteamFindFilter.h" />
+    <ClInclude Include="src\osw\ESteamNotify.h" />
+    <ClInclude Include="src\osw\ESteamPaymentCardType.h" />
+    <ClInclude Include="src\osw\ESteamSeekMethod.h" />
+    <ClInclude Include="src\osw\ESteamServerType.h" />
+    <ClInclude Include="src\osw\ESteamSubscriptionBillingInfoType.h" />
+    <ClInclude Include="src\osw\ESteamSubscriptionStatus.h" />
+    <ClInclude Include="src\osw\EUniverse.h" />
+    <ClInclude Include="src\osw\FriendGameInfo.h" />
+    <ClInclude Include="src\osw\FriendsCommon.h" />
+    <ClInclude Include="src\osw\GameCoordinatorCommon.h" />
+    <ClInclude Include="src\osw\GameServerCommon.h" />
+    <ClInclude Include="src\osw\gameserveritem.h" />
+    <ClInclude Include="src\osw\GameServerItemsCommon.h" />
+    <ClInclude Include="src\osw\GameServerStatsCommon.h" />
+    <ClInclude Include="src\osw\GameStatsCommon.h" />
+    <ClInclude Include="src\osw\IClientAppManager.h" />
+    <ClInclude Include="src\osw\IClientApps.h" />
+    <ClInclude Include="src\osw\IClientBilling.h" />
+    <ClInclude Include="src\osw\IClientConfigStore.h" />
+    <ClInclude Include="src\osw\IClientContentServer.h" />
+    <ClInclude Include="src\osw\IClientDepotBuilder.h" />
+    <ClInclude Include="src\osw\IClientEngine.h" />
+    <ClInclude Include="src\osw\IClientFriends.h" />
+    <ClInclude Include="src\osw\IClientGameCoordinator.h" />
+    <ClInclude Include="src\osw\IClientGameServer.h" />
+    <ClInclude Include="src\osw\IClientGameStats.h" />
+    <ClInclude Include="src\osw\IClientHTTP.h" />
+    <ClInclude Include="src\osw\IClientMatchmaking.h" />
+    <ClInclude Include="src\osw\IClientRemoteStorage.h" />
+    <ClInclude Include="src\osw\IClientUser.h" />
+    <ClInclude Include="src\osw\IClientUtils.h" />
+    <ClInclude Include="src\osw\Interface_OSW.h" />
+    <ClInclude Include="src\osw\ISteam003.h" />
+    <ClInclude Include="src\osw\ISteam004.h" />
+    <ClInclude Include="src\osw\ISteam005.h" />
+    <ClInclude Include="src\osw\ISteam006.h" />
+    <ClInclude Include="src\osw\ISteam2Bridge001.h" />
+    <ClInclude Include="src\osw\ISteam2Bridge002.h" />
+    <ClInclude Include="src\osw\ISteamApps001.h" />
+    <ClInclude Include="src\osw\ISteamApps002.h" />
+    <ClInclude Include="src\osw\ISteamApps003.h" />
+    <ClInclude Include="src\osw\ISteamBilling001.h" />
+    <ClInclude Include="src\osw\ISteamBilling002.h" />
+    <ClInclude Include="src\osw\ISteamClient006.h" />
+    <ClInclude Include="src\osw\ISteamClient007.h" />
+    <ClInclude Include="src\osw\ISteamClient008.h" />
+    <ClInclude Include="src\osw\ISteamClient009.h" />
+    <ClInclude Include="src\osw\ISteamContentServer001.h" />
+    <ClInclude Include="src\osw\ISteamContentServer002.h" />
+    <ClInclude Include="src\osw\ISteamFriends001.h" />
+    <ClInclude Include="src\osw\ISteamFriends002.h" />
+    <ClInclude Include="src\osw\ISteamFriends003.h" />
+    <ClInclude Include="src\osw\ISteamFriends004.h" />
+    <ClInclude Include="src\osw\ISteamFriends005.h" />
+    <ClInclude Include="src\osw\ISteamGameCoordinator001.h" />
+    <ClInclude Include="src\osw\ISteamGameServer002.h" />
+    <ClInclude Include="src\osw\ISteamGameServer003.h" />
+    <ClInclude Include="src\osw\ISteamGameServer004.h" />
+    <ClInclude Include="src\osw\ISteamGameServer005.h" />
+    <ClInclude Include="src\osw\ISteamGameServer006.h" />
+    <ClInclude Include="src\osw\ISteamGameServer007.h" />
+    <ClInclude Include="src\osw\ISteamGameServer008.h" />
+    <ClInclude Include="src\osw\ISteamGameServer009.h" />
+    <ClInclude Include="src\osw\ISteamGameServer010.h" />
+    <ClInclude Include="src\osw\ISteamGameServerItems002.h" />
+    <ClInclude Include="src\osw\ISteamGameServerItems003.h" />
+    <ClInclude Include="src\osw\ISteamGameServerItems004.h" />
+    <ClInclude Include="src\osw\ISteamGameServerStats001.h" />
+    <ClInclude Include="src\osw\ISteamGameStats001.h" />
+    <ClInclude Include="src\osw\ISteamMasterServerUpdater001.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking001.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking002.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking003.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking004.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking005.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking006.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking007.h" />
+    <ClInclude Include="src\osw\ISteamMatchmaking008.h" />
+    <ClInclude Include="src\osw\ISteamMatchmakingServers001.h" />
+    <ClInclude Include="src\osw\ISteamMatchmakingServers002.h" />
+    <ClInclude Include="src\osw\ISteamNetworking001.h" />
+    <ClInclude Include="src\osw\ISteamNetworking002.h" />
+    <ClInclude Include="src\osw\ISteamNetworking003.h" />
+    <ClInclude Include="src\osw\ISteamRemoteStorage001.h" />
+    <ClInclude Include="src\osw\ISteamRemoteStorage002.h" />
+    <ClInclude Include="src\osw\ISteamUser004.h" />
+    <ClInclude Include="src\osw\ISteamUser005.h" />
+    <ClInclude Include="src\osw\ISteamUser006.h" />
+    <ClInclude Include="src\osw\ISteamUser007.h" />
+    <ClInclude Include="src\osw\ISteamUser008.h" />
+    <ClInclude Include="src\osw\ISteamUser009.h" />
+    <ClInclude Include="src\osw\ISteamUser010.h" />
+    <ClInclude Include="src\osw\ISteamUser011.h" />
+    <ClInclude Include="src\osw\ISteamUser012.h" />
+    <ClInclude Include="src\osw\ISteamUser013.h" />
+    <ClInclude Include="src\osw\ISteamUserItems001.h" />
+    <ClInclude Include="src\osw\ISteamUserItems002.h" />
+    <ClInclude Include="src\osw\ISteamUserItems003.h" />
+    <ClInclude Include="src\osw\ISteamUserItems004.h" />
+    <ClInclude Include="src\osw\ISteamUserStats001.h" />
+    <ClInclude Include="src\osw\ISteamUserStats002.h" />
+    <ClInclude Include="src\osw\ISteamUserStats003.h" />
+    <ClInclude Include="src\osw\ISteamUserStats004.h" />
+    <ClInclude Include="src\osw\ISteamUserStats005.h" />
+    <ClInclude Include="src\osw\ISteamUserStats006.h" />
+    <ClInclude Include="src\osw\ISteamUserStats007.h" />
+    <ClInclude Include="src\osw\ISteamUtils001.h" />
+    <ClInclude Include="src\osw\ISteamUtils002.h" />
+    <ClInclude Include="src\osw\ISteamUtils003.h" />
+    <ClInclude Include="src\osw\ISteamUtils004.h" />
+    <ClInclude Include="src\osw\ISteamUtils005.h" />
+    <ClInclude Include="src\osw\MasterServerUpdaterCommon.h" />
+    <ClInclude Include="src\osw\MatchmakingCommon.h" />
+    <ClInclude Include="src\osw\MatchMakingKeyValuePair.h" />
+    <ClInclude Include="src\osw\MatchmakingServersCommon.h" />
+    <ClInclude Include="src\osw\NetworkingCommon.h" />
+    <ClInclude Include="src\osw\POSIXLibrary.h" />
+    <ClInclude Include="src\osw\RemoteStorageCommon.h" />
+    <ClInclude Include="src\osw\servernetadr.h" />
+    <ClInclude Include="src\osw\Steam.h" />
+    <ClInclude Include="src\osw\SteamAPI.h" />
+    <ClInclude Include="src\osw\Steamclient.h" />
+    <ClInclude Include="src\osw\SteamclientAPI.h" />
+    <ClInclude Include="src\osw\SteamSalt.h" />
+    <ClInclude Include="src\osw\SteamTypes.h" />
+    <ClInclude Include="src\osw\Steamworks.h" />
+    <ClInclude Include="src\osw\string_t.h" />
+    <ClInclude Include="src\osw\TSteamApp.h" />
+    <ClInclude Include="src\osw\TSteamAppDependencyInfo.h" />
+    <ClInclude Include="src\osw\TSteamAppLaunchOption.h" />
+    <ClInclude Include="src\osw\TSteamAppStats.h" />
+    <ClInclude Include="src\osw\TSteamAppVersion.h" />
+    <ClInclude Include="src\osw\TSteamDiscountQualifier.h" />
+    <ClInclude Include="src\osw\TSteamElemInfo.h" />
+    <ClInclude Include="src\osw\TSteamError.h" />
+    <ClInclude Include="src\osw\TSteamExternalBillingInfo.h" />
+    <ClInclude Include="src\osw\TSteamGlobalUserID.h" />
+    <ClInclude Include="src\osw\TSteamOfflineStatus.h" />
+    <ClInclude Include="src\osw\TSteamPaymentCardInfo.h" />
+    <ClInclude Include="src\osw\TSteamPaymentCardReceiptInfo.h" />
+    <ClInclude Include="src\osw\TSteamPrepurchaseInfo.h" />
+    <ClInclude Include="src\osw\TSteamPrepurchaseReceiptInfo.h" />
+    <ClInclude Include="src\osw\TSteamProgress.h" />
+    <ClInclude Include="src\osw\TSteamSplitLocalUserID.h" />
+    <ClInclude Include="src\osw\TSteamSubscription.h" />
+    <ClInclude Include="src\osw\TSteamSubscriptionBillingInfo.h" />
+    <ClInclude Include="src\osw\TSteamSubscriptionDiscount.h" />
+    <ClInclude Include="src\osw\TSteamSubscriptionReceipt.h" />
+    <ClInclude Include="src\osw\TSteamSubscriptionStats.h" />
+    <ClInclude Include="src\osw\TSteamUpdateStats.h" />
+    <ClInclude Include="src\osw\UserCommon.h" />
+    <ClInclude Include="src\osw\UserItemsCommon.h" />
+    <ClInclude Include="src\osw\UserStatsCommon.h" />
+    <ClInclude Include="src\osw\UtilsCommon.h" />
+    <ClInclude Include="src\osw\Win32Library.h" />
+    <ClInclude Include="src\sourcemod\memutils.h" />
+    <ClInclude Include="src\sourcemod\sh_vector.h" />
+    <ClInclude Include="src\sourcemod\sm_symtable.h" />
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaInterface.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaModuleManager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaObject.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaTable.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\ILuaUserData.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\Interface.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\LuaBase.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\..\blackawps-glua-modules\backwards_headers\Types.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
