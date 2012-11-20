@@ -400,8 +400,7 @@ int Start(lua_State *L)
 
 	ILuaInterface *gLua = Lua();
 
-	ILuaObject *metalist = gLua->GetGlobal("_R");
-	ILuaObject *vmeta = metalist->GetMember("Vehicle");
+	ILuaObject *vmeta = gLua->GetMetaTable("Vehicle", GLua::TYPE_ENTITY);
 
 		vmeta->SetMember("GetOperatingParams", getoperatingparams);
 		vmeta->SetMember("GetVehicleParams", getvehicleparams);
@@ -410,7 +409,6 @@ int Start(lua_State *L)
 		vmeta->SetMember("GetWheelMaterial", GetWheelMaterial);
 
 	vmeta->UnReference();
-	metalist->UnReference();
 
 	gLua->SetGlobal("GetUcmdButtons", GetUcmdButtons);
 	gLua->SetGlobal("SetUcmdButtons", SetUcmdButtons);
