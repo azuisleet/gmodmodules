@@ -391,11 +391,8 @@ LUA_FUNCTION(SetUcmdButtons)
 
 int Start(lua_State *L)
 {
-	Msg("1\n");
 	CreateInterfaceFn interfaceFactory = Sys_GetFactory( ENGINE_LIB );
-		Msg("2\n");
 	CreateInterfaceFn gameServerFactory = Sys_GetFactory( SERVER_LIB );
-		Msg("3\n");
 	CreateInterfaceFn physicsFactory = Sys_GetFactory( VPHYSICS_LIB );
 
 	surfaceprop = (IPhysicsSurfaceProps*)physicsFactory(VPHYSICS_SURFACEPROPS_INTERFACE_VERSION, NULL);
