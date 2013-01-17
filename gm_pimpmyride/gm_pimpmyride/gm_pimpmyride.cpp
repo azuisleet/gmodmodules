@@ -9,9 +9,9 @@
 
 #elif defined _LINUX
 
-#define ENGINE_LIB "engine.so"
-#define VPHYSICS_LIB "vphysics.so"
-#define SERVER_LIB "garrysmod/bin/server.so"
+#define ENGINE_LIB "engine_srv.so"
+#define VPHYSICS_LIB "vphysics_srv.so"
+#define SERVER_LIB "garrysmod/bin/server_srv.so"
 
 #endif
 
@@ -34,7 +34,8 @@ IPhysicsSurfaceProps *surfaceprop;
 
 inline ILuaObject *PushVector( ILuaInterface *gLua, const Vector& vec )
 {
-	ILuaObject* NVec = gLua->GetGlobal("Vector");
+	ILuaObject* G = gLua->Global();
+	ILuaObject* NVec = G->GetMember("Vector");
 
 	gLua->Push( NVec );
 	gLua->Push( vec.x );
@@ -390,8 +391,11 @@ LUA_FUNCTION(SetUcmdButtons)
 
 int Start(lua_State *L)
 {
+	Msg("1\n");
 	CreateInterfaceFn interfaceFactory = Sys_GetFactory( ENGINE_LIB );
+		Msg("2\n");
 	CreateInterfaceFn gameServerFactory = Sys_GetFactory( SERVER_LIB );
+		Msg("3\n");
 	CreateInterfaceFn physicsFactory = Sys_GetFactory( VPHYSICS_LIB );
 
 	surfaceprop = (IPhysicsSurfaceProps*)physicsFactory(VPHYSICS_SURFACEPROPS_INTERFACE_VERSION, NULL);

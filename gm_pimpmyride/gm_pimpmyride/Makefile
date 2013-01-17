@@ -1,16 +1,16 @@
-MODULE_NAME=gm_pimpmyride
+MODULE_NAME=gmsv_pimpmyride
 
 # Path configuration
-SOURCE_SDK=sdk
-SRCDS_DIR=../../../Downloads/srcds_gmod_linux/orangebox
+SOURCE_SDK=/mnt/hl2sdk-ob-valve
+SRCDS_DIR=/home/azuisleet/orangebox
 
 PROJECT_DIR=.
 OUT_DIR=../Release
 OBJ_DIR=./Release
 
 # Compilation Configuration
-COMPILER=/usr/bin/g++-4.3
-LINK=/usr/bin/g++-4.3
+COMPILER=/usr/bin/g++
+LINK=/usr/bin/g++
 
 USER_CFLAGS=-m32
 USER_LFLAGS=-m32
@@ -19,22 +19,20 @@ OPTFLAGS=-O1 -fomit-frame-pointer -ffast-math -fforce-addr -funroll-loops -fthre
 
 LIBFILES= \
   $(SOURCE_SDK)/lib/linux/tier1_i486.a \
-  $(SOURCE_SDK)/lib/linux/choreoobjects_i486.a \
-  $(SOURCE_SDK)/lib/linux/particles_i486.a \
-  $(SOURCE_SDK)/lib/linux/dmxloader_i486.a \
-  libtier0.so \
-  libvstdlib.so \
-  libsteam_api.so
+  libtier0_srv.so 
   
 MODULE_OBJS = \
+	$(OBJ_DIR)/ILuaInterface.o \
+	$(OBJ_DIR)/ILuaModuleManager.o \
+	$(OBJ_DIR)/ILuaObject.o \
 	$(OBJ_DIR)/gm_pimpmyride.o \
 	$(OBJ_DIR)/sourcemod/memutils.o \
 
 INCLUDE=-I$(PROJECT_DIR)/common -I$(PROJECT_DIR)/sourcemod -I$(SOURCE_SDK) -I$(SOURCE_SDK)/public -I$(SOURCE_SDK)/common -I$(SOURCE_SDK)/public/steam -I$(SOURCE_SDK)/public/tier0 -I$(SOURCE_SDK)/public/tier1 -I$(SOURCE_SDK)/tier1 -I$(SOURCE_SDK)/public/game/server -I$(SOURCE_SDK)/game -I$(SOURCE_SDK)/game/shared -I$(SOURCE_SDK)/game/server -I$(SOURCE_SDK)/game/client
 
-CFLAGS=$(USER_CFLAGS) $(OPTFLAGS) -mtune=i686 -march=pentium -mmmx -msse -pipe -D__LINUX__ -D_LINUX -Dsprintf_s=snprintf -Dstrcmpi=strcasecmp -D_alloca=alloca -DVPROF_LEVEL=1 -DSWDS -D_LINUX -DLINUX -DNDEBUG -fpermissive -Dstricmp=strcasecmp -D_stricmp=strcasecmp -Dstrcpy_s=strncpy -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp  -Usprintf=use_Q_snprintf_instead_of_sprintf -Ustrncpy=use_Q_strncpy_instead -Ufopen=dont_use_fopen -UPROTECTED_THINGS_ENABLE
+CFLAGS=$(USER_CFLAGS) $(OPTFLAGS) -mtune=i686 -march=pentium -mmmx -msse -pipe -DGMOD13 -DGMOD_BETA -DNO_SDK -D__LINUX__ -D_LINUX -DNO_MALLOC_OVERRIDE -Dsprintf_s=snprintf -Dstrcmpi=strcasecmp -D_alloca=alloca -DVPROF_LEVEL=1 -DSWDS -D_LINUX -DLINUX -DNDEBUG -fpermissive -Dstricmp=strcasecmp -D_stricmp=strcasecmp -Dstrcpy_s=strncpy -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp  -Usprintf=use_Q_snprintf_instead_of_sprintf -Ustrncpy=use_Q_strncpy_instead -Ufopen=dont_use_fopen -UPROTECTED_THINGS_ENABLE
 
-LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) -shared -Wl
+LFLAGS=$(USER_LFLAGS) -lm -ldl $(LIBFILES) -shared -Wl -static-libgcc -static-libstdc++ -ldl
 
 DO_CC=$(COMPILER) $(INCLUDE) -w $(CFLAGS) -DARCH=i486 -o $@ -c $<
 
@@ -49,10 +47,10 @@ $(MODULE_NAME): $(MODULE_OBJS) libs
 	$(COMPILER) -o $(OUT_DIR)/$(MODULE_NAME)_linux.dll $(MODULE_OBJS) $(LFLAGS)
 
 install:
-	cp $(OUT_DIR)/$(MODULE_NAME)_linux.dll $(SRCDS_DIR)/garrysmod/lua/includes/modules/
+	cp $(OUT_DIR)/$(MODULE_NAME)_linux.dll $(SRCDS_DIR)/garrysmod/lua/bin/
 
 libs:
-	ln -f -s $(SRCDS_DIR)/bin/libtier0.so
+	ln -f -s $(SRCDS_DIR)/bin/libtier0_srv.so
 	ln -f -s $(SRCDS_DIR)/bin/libvstdlib.so
 	ln -f -s $(SRCDS_DIR)/bin/libsteam_api.so
 
