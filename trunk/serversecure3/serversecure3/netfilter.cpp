@@ -15,8 +15,6 @@ static ConVar cvar_conservative( "ss_oob_conservative", "0", 0, "Use CPU conserv
 static ConVarRef sv_max_queries_sec_global( "sv_max_queries_sec_global" );
 static ConVarRef sv_max_queries_window( "sv_max_queries_window" );
 
-
-
 typedef int ( *RecvFromFn )( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
 
 enum EPacketType
@@ -32,7 +30,6 @@ struct Packet_t
 	uint8 m_Type;
 };
 #pragma pack( pop )
-
 
 EPacketType ClassifyData( char *data, int len, sockaddr_in *from )
 {
@@ -51,16 +48,21 @@ EPacketType ClassifyData( char *data, int len, sockaddr_in *from )
 
 	Packet_t *pPacket = reinterpret_cast<Packet_t *>( data );
 
+	if ( pPacket->m_Channel == -2 )
+	{
+		// completely ignore split packets
+		return k_ePacketType_Bad;
+	}
+
 	if ( pPacket->m_Channel != -1 )
 	{
 		return k_ePacketType_Good; // game traffic
 	}
 
-
 	switch ( pPacket->m_Type )
 	{
-		case 'W': // server challenge request
 		case 's': // master server challenge
+		{
 			if ( len > 100 )
 			{
 				if ( showOOB.GetBool() )
@@ -81,10 +83,14 @@ EPacketType ClassifyData( char *data, int len, sockaddr_in *from )
 					return k_ePacketType_Bad;
 				}
 			}
+
+			return k_ePacketType_Good;
+		}
 		case 'T': // server info request
+		case 'q': // connection handshake init
+		case 'W': // server challenge request
 		case 'U': // player info request
 		case 'V': // rules request
-		case 'q': // connection handshake init
 		case 'k': // steam auth packet
 		{
 			if ( showOOB.GetBool() )
@@ -109,9 +115,16 @@ RecvFromFn vcr_recvfrom = NULL; // original vcr recvfrom func
 
 int Hook_RecvFrom( int s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen )
 {
-	for ( int i = 0 ; i < 2 || !cvar_conservative.GetBool() ; ++i )
+//	for ( int i = 0 ; i < 2 || !cvar_conservative.GetBool() ; ++i )
+	for ( int i = 0 ; ; ++i )
 	{
 		int dataLen = vcr_recvfrom( s, buf, len, flags, from, fromlen );
+
+		if ( dataLen == -1 )
+		{
+			WSASetLastError( WSAEWOULDBLOCK );
+			return SOCKET_ERROR;
+		}
 
 		EPacketType ePackType = ClassifyData( buf, dataLen, reinterpret_cast<sockaddr_in *>( from ) );
 	
